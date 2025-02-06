@@ -1,6 +1,10 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import {pgTable, varchar, timestamp, json, uuid, text, primaryKey, foreignKey, boolean, integer, real,} from 'drizzle-orm/pg-core';
-import { blockKinds } from '../blocks/server';
+// import { blockKinds } from '../blocks/server';
+
+
+export const blockKinds = ['text', 'code', 'image', 'sheet'] as const;
+
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -124,3 +128,31 @@ export const assistants = pgTable('assistants', {
 });
 
 export type Assistant = InferSelectModel<typeof assistants>;
+
+
+// lib/db/enums.ts
+
+export const ModelProvider = {
+    OpenAI: 'OpenAI',
+    Anthropic: 'Anthropic',
+    Fireworks: 'Fireworks',
+} as const;
+
+export const ModelType = {
+    Text: 'text',
+    Image: 'image',
+} as const;
+
+export const ModelName = {
+    GPT4Mini: 'gpt-4o-mini',
+    GPT4: 'gpt-4o',
+    Claude: 'claude-3-5-sonnet-20241022',
+    DeepseekR1: 'accounts/fireworks/models/deepseek-r1',
+    GPT4Turbo: 'gpt-4-turbo',
+    DallE2: 'dall-e-2',
+    DallE3: 'dall-e-3',
+} as const;
+
+export type ModelProvider = typeof ModelProvider[keyof typeof ModelProvider];
+export type ModelType = typeof ModelType[keyof typeof ModelType];
+export type ModelName = typeof ModelName[keyof typeof ModelName];

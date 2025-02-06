@@ -9,7 +9,7 @@ import { auth } from '@/app/(auth)/auth';
 import { myProvider } from '@/lib/ai/models';
 import { systemPrompt } from '@/lib/ai/prompts';
 import {
-  deleteChatById,
+  deleteChatById, getAssistant,
   getChatById,
   saveChat,
   saveMessages,
@@ -25,6 +25,7 @@ import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+import getLanguageModel from "@/dashboard/assistant/assistantModel";
 
 export const maxDuration = 60;
 
@@ -65,11 +66,19 @@ export async function POST(request: Request) {
     messages: [{ ...userMessage, createdAt: new Date(), chatId: id }],
   });
 
+
+    const assistant = await getLanguageModel('2552bae6-8024-4064-a8f2-ba9daeac77a4');
+
+    console.log(assistant.systemPrompt);
+    console.log(assistant.model);
+
   return createDataStreamResponse({
     execute: (dataStream) => {
       const result = streamText({
-        model: myProvider.languageModel(selectedChatModel),
-        system: systemPrompt({ selectedChatModel }),
+        // model: myProvider.languageModel(selectedChatModel),
+        model:assistant.model,
+        system:assistant.systemPrompt || undefined,
+        // system: systemPrompt({ selectedChatModel }),
         messages,
         maxSteps: 5,
         experimental_activeTools:
@@ -120,6 +129,8 @@ export async function POST(request: Request) {
           isEnabled: true,
           functionId: 'stream-text',
         },
+        temperature: assistant.temperature || undefined,
+        maxTokens: assistant.maxTokens || undefined,
       });
 
       result.mergeIntoDataStream(dataStream, {

@@ -15,6 +15,7 @@ import {
   type Message,
   message,
   vote,
+    assistants
 } from './schema';
 import { BlockKind } from '@/components/block';
 
@@ -25,6 +26,16 @@ import { BlockKind } from '@/components/block';
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);
+
+
+export async function getAssistant(modelId: string) {
+  try {
+    return await db.select().from(assistants).where(eq(assistants.id, modelId)).limit(1);
+  } catch (error) {
+    console.error('Failed to get assistant from database');
+    throw error;
+  }
+}
 
 export async function getUser(email: string): Promise<Array<User>> {
   try {
