@@ -66,11 +66,11 @@ export async function POST(request: Request) {
     messages: [{ ...userMessage, createdAt: new Date(), chatId: id }],
   });
 
+    //2552bae6-8024-4064-a8f2-ba9daeac77a4
+    const assistant = await getLanguageModel(selectedChatModel);
 
-    const assistant = await getLanguageModel('2552bae6-8024-4064-a8f2-ba9daeac77a4');
-
-    console.log(assistant.systemPrompt);
-    console.log(assistant.model);
+    // console.log(assistant.systemPrompt);
+    // console.log(assistant.model);
 
   return createDataStreamResponse({
     execute: (dataStream) => {

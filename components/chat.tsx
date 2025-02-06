@@ -2,7 +2,7 @@
 
 import type { Attachment, Message } from 'ai';
 import { useChat } from 'ai/react';
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 
 import { ChatHeader } from '@/components/chat-header';
@@ -15,6 +15,8 @@ import { Messages } from './messages';
 import { VisibilityType } from './visibility-selector';
 import { useBlockSelector } from '@/hooks/use-block';
 import { toast } from 'sonner';
+import {useUserStore} from "@/app/dashboard/store";
+
 
 export function Chat({
   id,
@@ -31,6 +33,21 @@ export function Chat({
 }) {
   const { mutate } = useSWRConfig();
 
+  /// change
+
+  const { name } = useUserStore();
+
+  console.log('ko');
+  console.log(name);
+
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+
+///change
   const {
     messages,
     setMessages,
@@ -43,7 +60,7 @@ export function Chat({
     reload,
   } = useChat({
     id,
-    body: { id, selectedChatModel: selectedChatModel },
+    body: { id, selectedChatModel: name  },
     initialMessages,
     experimental_throttle: 100,
     sendExtraMessageFields: true,
@@ -60,6 +77,7 @@ export function Chat({
     `/api/vote?chatId=${id}`,
     fetcher,
   );
+
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isBlockVisible = useBlockSelector((state) => state.isVisible);
