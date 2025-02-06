@@ -1,15 +1,5 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import {
-  pgTable,
-  varchar,
-  timestamp,
-  json,
-  uuid,
-  text,
-  primaryKey,
-  foreignKey,
-  boolean,
-} from 'drizzle-orm/pg-core';
+import {pgTable, varchar, timestamp, json, uuid, text, primaryKey, foreignKey, boolean, integer, real,} from 'drizzle-orm/pg-core';
 import { blockKinds } from '../blocks/server';
 
 export const user = pgTable('User', {
@@ -112,3 +102,25 @@ export const suggestion = pgTable(
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
+
+
+export const assistants = pgTable('assistants', {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    name: text('name').notNull(),
+    description: text('description'),
+    provider: text('provider', { enum: ['OpenAI', 'Anthropic'] }).notNull().default('OpenAI'),
+    modelName: text('modelName').notNull(),
+    type: text('type', { enum: ['text', 'image'] }).notNull(),
+    systemPrompt: text('systemPrompt'),
+    temperature: real('temperature').default(0.7),
+    maxTokens: integer('maxTokens').default(2048),
+    suggestions: json('suggestions'), // Changed from array to json
+       apiKey: text('apiKey'),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+    userId: uuid('userId')
+        .notNull()
+        .references(() => user.id),
+});
+
+export type Assistant = InferSelectModel<typeof assistants>;

@@ -15,6 +15,9 @@ const runMigrate = async () => {
   const connection = postgres(process.env.POSTGRES_URL, { max: 1 });
   const db = drizzle(connection);
 
+  console.log('⏳ Creating pgcrypto extension...');
+  await connection`CREATE EXTENSION IF NOT EXISTS pgcrypto`;
+
   console.log('⏳ Running migrations...');
 
   const start = Date.now();

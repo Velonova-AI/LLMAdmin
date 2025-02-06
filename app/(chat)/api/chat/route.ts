@@ -29,6 +29,9 @@ import { getWeather } from '@/lib/ai/tools/get-weather';
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
+  try {
+
+
   const {
     id,
     messages,
@@ -37,6 +40,9 @@ export async function POST(request: Request) {
     await request.json();
 
   const session = await auth();
+
+
+
 
   if (!session || !session.user || !session.user.id) {
     return new Response('Unauthorized', { status: 401 });
@@ -120,10 +126,18 @@ export async function POST(request: Request) {
         sendReasoning: true,
       });
     },
-    onError: () => {
+    onError: (error) => {
+
+      console.error('Error in data stream:', error);
       return 'Oops, an error occured!';
     },
   });
+
+  } catch (error) {
+    console.error('Error in POST function:', error);
+    return new Response('Internal Server Error', { status: 500 });
+  }
+
 }
 
 export async function DELETE(request: Request) {
