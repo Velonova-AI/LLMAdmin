@@ -6,7 +6,7 @@ import {
 } from 'ai';
 
 import { auth } from '@/app/(auth)/auth';
-import { myProvider } from '@/lib/ai/models';
+import {anthropicProvider, myProvider} from '@/lib/ai/models';
 import { systemPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById, getAssistant,
@@ -25,7 +25,8 @@ import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
-import getLanguageModel from "@/dashboard/assistant/assistantModel";
+import {Assistant} from "@/lib/db/schema";
+//import getLanguageModel from "@/app/dashboard/assistant/assistantModel";
 
 export const maxDuration = 60;
 
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
     id,
     messages,
     selectedChatModel,
-  }: { id: string; messages: Array<Message>; selectedChatModel: string } =
+  }: { id: string; messages: Array<Message>; selectedChatModel: Assistant } =
     await request.json();
 
   const session = await auth();
@@ -67,22 +68,28 @@ export async function POST(request: Request) {
   });
 
     //2552bae6-8024-4064-a8f2-ba9daeac77a4
-    const assistant = await getLanguageModel(selectedChatModel);
+    const assistant = selectedChatModel;
+    let model;
+    if (assistant.provider === 'OpenAI') {
+       model = myProvider.languageModel(assistant.modelName);
+    } else if (assistant.provider === 'Anthropic') {
+       model = anthropicProvider.languageModel(assistant.modelName);
+    } else {
+      throw new Error('Invalid provider selected');
+    }
 
-    // console.log(assistant.systemPrompt);
-    // console.log(assistant.model);
-
+    console.log(model)
   return createDataStreamResponse({
     execute: (dataStream) => {
       const result = streamText({
         // model: myProvider.languageModel(selectedChatModel),
-        model:assistant.model,
+        model:model,
         system:assistant.systemPrompt || undefined,
         // system: systemPrompt({ selectedChatModel }),
         messages,
         maxSteps: 5,
         experimental_activeTools:
-          selectedChatModel === 'chat-model-reasoning'
+            assistant.modelName === 'chat-model-reasoning'
             ? []
             : [
                 'getWeather',

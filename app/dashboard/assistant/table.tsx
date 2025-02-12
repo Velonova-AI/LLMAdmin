@@ -118,11 +118,11 @@ import {useEffect, useState} from "react";
 
 
                                         <Link
-                                            href='#'
+                                            href='/'
                                             className="block w-full h-full"
                                             onClick={() => handleRowClick(assistant)}
                                         >
-                                            {assistant.name}
+                                            Link
                                         </Link>
 
                                 </td>

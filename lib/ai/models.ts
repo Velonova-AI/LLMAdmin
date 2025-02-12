@@ -11,9 +11,28 @@ export const DEFAULT_CHAT_MODEL: string = 'chat-model-small';
 
 export const myProvider = customProvider({
   languageModels: {
-    'chat-model-small': openai('gpt-4o-mini'),
+    'gpt-4o': openai('gpt-4o-mini'),
     // 'chat-model-large': openai('gpt-4o'),
     "chat-model-large": anthropic("claude-3-5-sonnet-20241022"), // Replace openai with anthropic
+    'chat-model-reasoning': wrapLanguageModel({
+      model: fireworks('accounts/fireworks/models/deepseek-r1'),
+      middleware: extractReasoningMiddleware({ tagName: 'think' }),
+    }),
+    'title-model': openai('gpt-4-turbo'),
+    'block-model': openai('gpt-4o-mini'),
+  },
+  imageModels: {
+    'small-model': openai.image('dall-e-2'),
+    'large-model': openai.image('dall-e-3'),
+  },
+});
+
+
+export const anthropicProvider = customProvider({
+  languageModels: {
+    'chat-model-small': anthropic('gpt-4o-mini'),
+    // 'chat-model-large': openai('gpt-4o'),
+    "claude-3-5-sonnet-20241022": anthropic("claude-3-5-sonnet-20241022"), // Replace openai with anthropic
     'chat-model-reasoning': wrapLanguageModel({
       model: fireworks('accounts/fireworks/models/deepseek-r1'),
       middleware: extractReasoningMiddleware({ tagName: 'think' }),

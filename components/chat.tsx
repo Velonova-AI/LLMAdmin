@@ -59,7 +59,7 @@ console.log(assistant)
     reload,
   } = useChat({
     id,
-    body: { id, selectedChatModel: "lll"  },
+    body: { id, selectedChatModel: assistant },
     initialMessages,
     experimental_throttle: 100,
     sendExtraMessageFields: true,

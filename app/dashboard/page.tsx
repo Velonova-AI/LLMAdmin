@@ -14,9 +14,13 @@ import {Assistant} from "@/lib/db/schema";
 
 
 export default function Home() {
-    const { assistant , setAssistant  } = useAssistantStore()
+    const { assistant  } = useAssistantStore()
 
-console.log(assistant.name);
+    if (!assistant) {
+        return <div>No assistant found</div>
+    }
+//
+// console.log(assistant.name);
 
 
 
