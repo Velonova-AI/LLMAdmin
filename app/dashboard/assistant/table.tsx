@@ -13,6 +13,7 @@ import {useEffect, useState} from "react";
         const [isLoading, setIsLoading] = useState(true)
         const [error, setError] = useState<string | null>(null)
 
+
         useEffect(() => {
             async function loadAssistants() {
                 try {
@@ -34,6 +35,7 @@ import {useEffect, useState} from "react";
 
         const handleRowClick = (clickedAssistant: Assistant) => {
             setAssistant(clickedAssistant)
+
         }
 
     return (
@@ -118,9 +120,13 @@ import {useEffect, useState} from "react";
 
 
                                         <Link
+
                                             href='/'
-                                            className="block w-full h-full"
+                                            className={`block w-full h-full text-blue-600 underline cursor-pointer transition-colors`}
+
                                             onClick={() => handleRowClick(assistant)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                         >
                                             Link
                                         </Link>
