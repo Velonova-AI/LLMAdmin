@@ -19,6 +19,7 @@
     "db:up": "drizzle-kit up"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@ai-sdk/anthropic": "^1.1.6",
     "@ai-sdk/fireworks": "^0.1.8",
     "@ai-sdk/openai": "1.1.9",
