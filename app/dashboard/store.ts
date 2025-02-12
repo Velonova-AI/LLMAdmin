@@ -1,21 +1,24 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
+import type { Assistant } from "@/lib/db/schema"
 
-interface UserState {
-    name: string
-    setName: (name: string) => void
+
+interface AssistantStore {
+    assistant: Assistant | null
+    setAssistant: (assistant: Assistant) => void
 }
 
-export const useUserStore = create<UserState>()(
+export const useAssistantStore = create<AssistantStore>()(
     persist(
         (set) => ({
-            name: "",
-            setName: (name) => set({ name }),
+            assistant: null,
+            setAssistant: (assistant) => set({ assistant }),
         }),
         {
-            name: "user-storage", // unique name for localStorage key
+            name: "assistant-storage", // unique name for localStorage key
             storage: createJSONStorage(() => localStorage),
         },
     ),
+
 )
 

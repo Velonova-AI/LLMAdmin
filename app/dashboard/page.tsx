@@ -1,47 +1,43 @@
-"use client"
+// import Search from '@/components/ui/assistants/search';
+// import { CreateAssistant } from '@/components/ui/assistants/buttons';
+// import { lusitana } from '@/components/ui/assistants/fonts';
+// import { InvoicesTableSkeleton } from '@/components/ui/assistants/skeletons';
+'use client';
 
-import {useEffect, useState} from "react"
-import { useUserStore } from "./store"
-import Link from "next/link"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Suspense } from 'react';
+import {auth} from "@/app/(auth)/auth";
+import AssistantsTable from "@/app/dashboard/assistant/table";
+import {useAssistantStore} from "@/app/dashboard/store";
+import {Assistant} from "@/lib/db/schema";
+
+
+
 
 export default function Home() {
-    const { name, setName } = useUserStore()
-    const [inputName, setInputName] = useState("")
-    const [isClient, setIsClient] = useState(false)
+    const { assistant , setAssistant  } = useAssistantStore()
 
-    useEffect(() => {
-        setIsClient(true)
-        setInputName(name)
-    }, [name])
+console.log(assistant.name);
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        setName(inputName)
-    }
 
-    if (!isClient) {
-        return null // or a loading spinner
-    }
+
+
+
 
     return (
-        <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">Home Page</h1>
-            <form onSubmit={handleSubmit} className="mb-4">
-                <Input
-                    type="text"
-                    value={inputName}
-                    onChange={(e) => setInputName(e.target.value)}
-                    placeholder="Enter your name"
-                    className="mb-2"
-                />
-                <Button type="submit">Set Name</Button>
-            </form>
-            <Link href="/" className="text-blue-500 hover:underline">
-                Go to chat
-            </Link>
+        <div className="w-full">
+            {/*<div className="flex w-full items-center justify-between">*/}
+            {/*    <h1 className={`${lusitana.className} text-2xl`}>Personal Assistants</h1>*/}
+            {/*</div>*/}
+            {/*<div className="mt-4 flex items-center justify-between gap-2 md:mt-8">*/}
+            {/*    <Search placeholder="Search assistants..." />*/}
+            {/*    <CreateAssistant />*/}
+            {/*</div>*/}
+            <Suspense fallback={<div>Loading...</div>}>
+                <AssistantsTable  />
+            </Suspense>
+            <div className="mt-5 flex w-full justify-center">
+                {/*<Pagination totalPages={totalPages} />*/}
+            </div>
         </div>
-    )
+    );
 }
-

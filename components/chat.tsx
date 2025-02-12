@@ -15,7 +15,7 @@ import { Messages } from './messages';
 import { VisibilityType } from './visibility-selector';
 import { useBlockSelector } from '@/hooks/use-block';
 import { toast } from 'sonner';
-import {useUserStore} from "@/app/dashboard/store";
+import {useAssistantStore} from "@/app/dashboard/store";
 
 
 export function Chat({
@@ -35,10 +35,9 @@ export function Chat({
 
   /// change
 
-  const { name } = useUserStore();
+  const { assistant } = useAssistantStore();
 
-  console.log('ko');
-  console.log(name);
+console.log(assistant)
 
   const [isClient, setIsClient] = useState(false)
 
@@ -60,7 +59,7 @@ export function Chat({
     reload,
   } = useChat({
     id,
-    body: { id, selectedChatModel: name  },
+    body: { id, selectedChatModel: "lll"  },
     initialMessages,
     experimental_throttle: 100,
     sendExtraMessageFields: true,
