@@ -107,7 +107,18 @@ export const suggestion = pgTable(
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
 
+export const feedbacks = pgTable("feedbacks", {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    subject: text("subject").notNull(),
+    message: text("message").notNull(),
+    willBuy: boolean("will_buy"),
+    price: integer("price"),
+    userId: uuid('userId')
+        .notNull()
+        .references(() => user.id),
+});
 
+export type Feedback = InferSelectModel<typeof feedbacks>;
 export const assistants = pgTable('assistants', {
     id: uuid('id').primaryKey().notNull().defaultRandom(),
     name: text('name').notNull(),

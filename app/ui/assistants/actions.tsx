@@ -6,13 +6,42 @@ import { redirect } from "next/navigation"
 
 import { eq } from "drizzle-orm"
 import { auth } from "@/app/(auth)/auth"
-import {assistants, ModelName, ModelProvider, ModelType, user} from "@/lib/db/schema"
+import {assistants, feedbacks, ModelName, ModelProvider, ModelType, user} from "@/lib/db/schema"
 import postgres from "postgres"
 import { drizzle } from "drizzle-orm/postgres-js"
 
 
 const client = postgres(process.env.POSTGRES_URL!, { ssl: 'require' })
 const db = drizzle(client)
+
+export async function submitFeedback(formData: FormData) {
+    const subject = formData.get("subject") as string
+    const message = formData.get("message") as string
+    const willBuy = formData.get("willBuy") === "on"
+    const price = willBuy ? Number.parseInt(formData.get("price") as string) : null
+
+    try {
+        const session = await auth();
+        if (!session || !session.user || !session.user.id) {
+            return redirect("/login")
+        }
+
+        await db.insert(feedbacks).values({
+            subject,
+            message,
+            willBuy,
+            price,
+            userId:session.user.id,
+        })
+
+        revalidatePath("/")
+        return { success: true }
+    } catch (error) {
+        console.error("Error submitting feedback:", error)
+        return { success: false, error: "Error submitting feedback" }
+    }
+}
+
 
 const assistantSchema = z.object({
     id: z.string().uuid().optional(),
