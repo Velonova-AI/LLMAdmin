@@ -7,24 +7,27 @@ import {
   DocumentTextIcon,
   ChatBubbleBottomCenterTextIcon,
   AdjustmentsHorizontalIcon,
-  CogIcon, PlusIcon,
+  PlusIcon,
 } from "@heroicons/react/24/outline"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {createAssistant, updateAssistant} from "./actions"
-import {Button} from "@/components/ui/button";
-import {XMarkIcon} from "@heroicons/react/16/solid";
+import { updateAssistant } from "./actions"
+import { Button } from "@/components/ui/button"
+import { XMarkIcon } from "@heroicons/react/16/solid"
+import { ModelName, ModelProvider, ModelType } from "@/lib/db/schema"
 
 interface AssistantForm {
   id: string
   name: string
+  description?: string
   apiKey: string
-  modelProvider: string
-  modelName: string
-  systemPrompt: string
-  userPrompts: string[]
-  temperature: string
+  provider: ModelProvider
+  modelName: ModelName
+  type: ModelType
+  systemPrompt?: string
+  suggestions: string[]
+  temperature: number
   maxTokens: number
 }
 
@@ -33,51 +36,39 @@ export default function EditAssistantForm({
                                           }: {
   assistant: AssistantForm
 }) {
-
-
   const [formData, setFormData] = useState<AssistantForm>(assistant)
-
-  const [userPrompts, setUserPrompts] = useState<string[]>(() => {
-    if (Array.isArray(assistant.userPrompts)) {
-      return assistant.userPrompts
-    } else if (typeof assistant.userPrompts === "string") {
-      try {
-        const parsed = JSON.parse(assistant.userPrompts)
-        return Array.isArray(parsed) ? parsed : []
-      } catch {
-        return assistant.userPrompts ? [assistant.userPrompts] : []
-      }
-    }
-    return []
-  })
-    const [currentPrompt, setCurrentPrompt] = useState("")
-
-  console.log(userPrompts);
+  const [currentPrompt, setCurrentPrompt] = useState("")
 
   const addPrompt = () => {
     if (currentPrompt.trim() !== "") {
-      setUserPrompts([...userPrompts, currentPrompt.trim()])
+      setFormData((prev) => ({
+        ...prev,
+        suggestions: [...prev.suggestions, currentPrompt.trim()],
+      }))
       setCurrentPrompt("")
     }
   }
 
   const removePrompt = (index: number) => {
-    setUserPrompts(userPrompts.filter((_, i) => i !== index))
+    setFormData((prev) => ({
+      ...prev,
+      suggestions: prev.suggestions.filter((_, i) => i !== index),
+    }))
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && e.shiftKey === false) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       addPrompt()
     }
   }
 
-  const handleSubmit = async (formData: FormData) => {
-    formData.append("userPrompts", JSON.stringify(Array.isArray(userPrompts) ? userPrompts : []))
-    await updateAssistant(formData)
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const data = new FormData(e.currentTarget)
+    data.append("suggestions", JSON.stringify(formData.suggestions))
+    await updateAssistant(data)
   }
-
-
 
   return (
       <div className="max-w-2xl mx-auto p-6">
@@ -85,7 +76,7 @@ export default function EditAssistantForm({
           <span className="text-foreground">Edit Personal Assistant</span>
         </div>
 
-        <form action={ handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <input type="hidden" name="id" value={formData.id} />
           <div className="rounded-md bg-gray-50 p-4 md:p-6 space-y-6">
             {/* Assistant Name */}
@@ -95,15 +86,31 @@ export default function EditAssistantForm({
               </label>
               <div className="relative">
                 <Input
-                    id="assistant-name"
-                    name="assistant-name"
+                    id="name"
+                    name="name"
                     defaultValue={formData.name}
-
                     placeholder="My AI Assistant"
                     className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                     required
                 />
                 <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label htmlFor="description" className="mb-2 block text-sm font-medium">
+                Description
+              </label>
+              <div className="relative">
+                <Input
+                    id="description"
+                    name="description"
+                    defaultValue={formData.description}
+                    placeholder="Assistant description (optional)"
+                    className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                />
+                <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
               </div>
             </div>
 
@@ -114,11 +121,10 @@ export default function EditAssistantForm({
               </label>
               <div className="relative">
                 <Input
-                    id="api-key"
-                    name="api-key"
+                    id="apiKey"
+                    name="apiKey"
                     type="password"
                     defaultValue={formData.apiKey}
-
                     className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                     placeholder="Enter your API key"
                     required
@@ -128,24 +134,23 @@ export default function EditAssistantForm({
             </div>
 
             {/* Model Provider */}
-            {/* Model Provider */}
             <div>
-              <label htmlFor="model-provider" className="mb-2 block text-sm font-medium">
+              <label htmlFor="provider" className="mb-2 block text-sm font-medium">
                 Model Provider
               </label>
               <div className="relative">
-                <select
-                    id="model-provider"
-                    name="model-provider"
-                    className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                    defaultValue={formData.modelProvider}
-                    required
-                >
-
-                  <option value="openai">OpenAI</option>
-                  <option value="anthropic">Anthropic</option>
-                  <option value="google">Google</option>
-                </select>
+                <Select name="provider" defaultValue={formData.provider}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(ModelProvider).map((provider) => (
+                        <SelectItem key={provider} value={provider}>
+                          {provider}
+                        </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
               </div>
             </div>
@@ -156,15 +161,40 @@ export default function EditAssistantForm({
                 Model Name
               </label>
               <div className="relative">
-                <Input
-                    id="model-name"
-                    name="model-name"
-                    defaultValue={formData.modelName}
+                <Select name="modelName" defaultValue={formData.modelName}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(ModelName).map(([key, value]) => (
+                        <SelectItem key={key} value={value}>
+                          {key}
+                        </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+              </div>
+            </div>
 
-                    className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                    placeholder="gpt-4"
-                    required
-                />
+            {/* Model Type */}
+            <div>
+              <label htmlFor="type" className="mb-2 block text-sm font-medium">
+                Model Type
+              </label>
+              <div className="relative">
+                <Select name="type" defaultValue={formData.type}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(ModelType).map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
               </div>
             </div>
@@ -176,14 +206,12 @@ export default function EditAssistantForm({
               </label>
               <div className="relative">
                 <Textarea
-                    id="system-prompt"
-                    name="system-prompt"
+                    id="systemPrompt"
+                    name="systemPrompt"
                     defaultValue={formData.systemPrompt}
-
                     rows={4}
                     className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                     placeholder="Enter the system prompt for your assistant"
-                    required
                 />
                 <ChatBubbleBottomCenterTextIcon className="pointer-events-none absolute left-3 top-4 h-[18px] w-[18px] text-gray-500" />
               </div>
@@ -191,12 +219,12 @@ export default function EditAssistantForm({
 
             {/* User Prompts */}
             <div>
-              <label htmlFor="userPrompts" className="block text-sm font-medium mb-2">
+              <label htmlFor="suggestions" className="block text-sm font-medium mb-2">
                 User Prompts
               </label>
               <div className="relative">
                 <Textarea
-                    id="userPrompts"
+                    id="suggestions"
                     value={currentPrompt}
                     onChange={(e) => setCurrentPrompt(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -210,24 +238,23 @@ export default function EditAssistantForm({
                 Add Prompt
               </Button>
               <ul className="mt-2 space-y-2">
-                {Array.isArray(userPrompts) &&
-                    userPrompts.map((prompt, index) => (
-                        <li
-                            key={index}
-                            className="flex items-center justify-between bg-white rounded-md p-2 border border-gray-200"
-                        >
-                          <span className="text-sm">{prompt}</span>
-                          <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removePrompt(index)}
-                              aria-label={`Remove prompt: ${prompt}`}
-                          >
-                            <XMarkIcon className="h-4 w-4" />
-                          </Button>
-                        </li>
-                    ))}
+                {formData.suggestions.map((prompt, index) => (
+                    <li
+                        key={index}
+                        className="flex items-center justify-between bg-white rounded-md p-2 border border-gray-200"
+                    >
+                      <span className="text-sm">{prompt}</span>
+                      <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePrompt(index)}
+                          aria-label={`Remove prompt: ${prompt}`}
+                      >
+                        <XMarkIcon className="h-4 w-4" />
+                      </Button>
+                    </li>
+                ))}
               </ul>
             </div>
 
@@ -245,7 +272,6 @@ export default function EditAssistantForm({
                     min="0"
                     max="1"
                     defaultValue={formData.temperature}
-
                     className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                     required
                 />
@@ -263,12 +289,11 @@ export default function EditAssistantForm({
               </label>
               <div className="relative">
                 <Input
-                    id="max-tokens"
-                    name="max-tokens"
+                    id="maxTokens"
+                    name="maxTokens"
                     type="number"
                     min="1"
                     defaultValue={formData.maxTokens}
-
                     className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                     required
                 />

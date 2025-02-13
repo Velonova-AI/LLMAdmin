@@ -17,13 +17,15 @@ export function CreateAssistant() {
 export function UpdateAssistant({ id }: { id: string }) {
   return (
     <Link
-        href={`/dashboard/assistants/${id}/edit`}
+        href={`/dashboard/assistant/${id}/edit`}
         className="rounded-md border p-2 hover:bg-gray-100"
     >
       <PencilIcon className="w-5" />
     </Link>
   );
 }
+
+
 
 export function DeleteAssistant({ id }: { id: string }) {
 
@@ -39,12 +41,5 @@ export function DeleteAssistant({ id }: { id: string }) {
       </form>
   );
 
-  return (
-    <>
-      <button type="submit" className="rounded-md border p-2 hover:bg-gray-100">
-        <span className="sr-only">Delete</span>
-        <TrashIcon className="w-5" />
-      </button>
-    </>
-  );
+
 }

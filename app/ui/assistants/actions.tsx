@@ -32,7 +32,7 @@ export type AssistantForm = z.infer<typeof assistantSchema>
 
 export async function deleteAssistant(id: string) {
     await db.delete(assistants).where(eq(assistants.id, id))
-    revalidatePath('/dashboard/assistants')
+    revalidatePath('/dashboard/')
 }
 
 const CreateAssistant = z.object({
@@ -84,12 +84,24 @@ export async function createAssistant(formData: FormData) {
 
     await db.insert(assistants).values(assistantData)
 
-    revalidatePath("/dashboard/assistants")
-    redirect("/dashboard/assistants")
+    revalidatePath("/dashboard")
+    redirect("/dashboard")
 }
 
 
+export async function editAssistantById(id:string) {
+    try {
 
+
+        const [assist]= await db.select().from(assistants).where(eq(assistants.id,id));
+
+        return assist;
+
+    } catch (error) {
+        console.error('Database Error:', error);
+        throw new Error('Failed to fetch model data.');
+    }
+}
 
 const UpdateAssistant = assistantSchema.partial().extend({
     id: z.string().uuid(),
@@ -105,8 +117,8 @@ export async function updateAssistant(formData: FormData) {
             modelName: formData.get("modelName"),
             type: formData.get("type"),
             systemPrompt: formData.get("systemPrompt"),
-            temperature: formData.get("temperature"),
-            maxTokens: formData.get("maxTokens"),
+            temperature: Number.parseFloat(formData.get("temperature") as string),
+            maxTokens: Number.parseInt(formData.get("maxTokens") as string, 10),
             suggestions: formData.get("suggestions") ? JSON.parse(formData.get("suggestions") as string) : undefined,
             apiKey: formData.get("apiKey"),
         })
@@ -126,6 +138,6 @@ export async function updateAssistant(formData: FormData) {
 
     await db.update(assistants).set(assistantData).where(eq(assistants.id, id))
 
-    revalidatePath("/dashboard/assistant")
-    redirect("/dashboard/assistant")
+    revalidatePath("/dashboard")
+    redirect("/dashboard")
 }

@@ -3,6 +3,7 @@ import {fetchFilteredAssistants} from "./api";
 import {Assistant} from "@/lib/db/schema";
 import {useAssistantStore} from "@/app/dashboard/store";
 import {useEffect, useState} from "react";
+import {DeleteAssistant, UpdateAssistant} from "@/app/ui/assistants/buttons";
 
 
 
@@ -79,8 +80,8 @@ import {useEffect, useState} from "react";
 
 
                                     <div className="flex justify-end gap-2">
-                                        {/*<UpdateAssistant id={assistant.id} />*/}
-                                        {/*<DeleteAssistant id={assistant.id} />*/}
+                                        <UpdateAssistant id={assistant.id} />
+                                        <DeleteAssistant id={assistant.id} />
                                     </div>
                                 </div>
                             </div>
@@ -142,8 +143,8 @@ import {useEffect, useState} from "react";
 
                                 <td className="whitespace-nowrap py-3 pl-6 pr-3">
                                     <div className="flex justify-end gap-3">
-                                        {/*<UpdateAssistant id={assistant.id} />*/}
-                                        {/*<DeleteAssistant id={assistant.id} />*/}
+                                        <UpdateAssistant id={assistant.id} />
+                                        <DeleteAssistant id={assistant.id} />
                                     </div>
                                 </td>
                             </tr>
