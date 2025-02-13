@@ -27,17 +27,19 @@ import { BlockKind } from '@/components/block';
 const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);
 
-export async function fetchFilteredAssistants() {
 
 
-
-  try {
-    return await db.select().from(assistants);
-  } catch (error) {
-    console.error('Failed to get assistant from database');
-    throw error;
-  }
-}
+// export async function fetchFilteredAssistants() {
+//
+//
+//
+//   try {
+//     return await db.select().from(assistants);
+//   } catch (error) {
+//     console.error('Failed to get assistant from database');
+//     throw error;
+//   }
+// }
 
 export async function getAssistant(modelId: string) {
   try {
@@ -47,6 +49,8 @@ export async function getAssistant(modelId: string) {
     throw error;
   }
 }
+
+
 
 export async function getUser(email: string): Promise<Array<User>> {
   try {

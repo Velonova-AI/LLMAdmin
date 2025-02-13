@@ -135,7 +135,7 @@ export type Assistant = InferSelectModel<typeof assistants>;
 export const ModelProvider = {
     OpenAI: 'OpenAI',
     Anthropic: 'Anthropic',
-    Fireworks: 'Fireworks',
+
 } as const;
 
 export const ModelType = {
@@ -147,7 +147,7 @@ export const ModelName = {
     GPT4Mini: 'gpt-4o-mini',
     GPT4: 'gpt-4o',
     Claude: 'claude-3-5-sonnet-20241022',
-    DeepseekR1: 'accounts/fireworks/models/deepseek-r1',
+
     GPT4Turbo: 'gpt-4-turbo',
     DallE2: 'dall-e-2',
     DallE3: 'dall-e-3',

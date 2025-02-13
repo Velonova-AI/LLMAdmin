@@ -7,7 +7,13 @@ import {useEffect, useState} from "react";
 
 
 
-    export default  function AssistantsTable() {
+    export default  function AssistantsTable({
+                                                 query,
+                                                 currentPage,
+                                             }: {
+        query: string;
+        currentPage: number;
+    }) {
         const { assistant, setAssistant  } = useAssistantStore()
         const [assistants, setAssistants] = useState<Assistant[]>([])
         const [isLoading, setIsLoading] = useState(true)
@@ -18,8 +24,9 @@ import {useEffect, useState} from "react";
             async function loadAssistants() {
                 try {
                     setIsLoading(true)
-                    const data = await fetchFilteredAssistants()
-                    setAssistants(data)
+                    const data = await fetchFilteredAssistants(query, currentPage);
+                    //console.log(data.assistants);
+                    setAssistants(data.assistants);
                 } catch (err) {
                     setError('Failed to load assistants')
                 } finally {
