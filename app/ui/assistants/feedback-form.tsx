@@ -2,12 +2,13 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
+
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
 import { Label } from "@/components/ui/label"
 import {submitFeedback} from "@/app/ui/assistants/actions";
+import {Button} from "@/app/ui/assistants/button";
 
 
 export function FeedbackForm() {
