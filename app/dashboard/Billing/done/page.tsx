@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import {Button} from "@/app/ui/assistants/button";
+
 
 export default function DonePage() {
   const searchParams = useSearchParams()
@@ -16,8 +17,11 @@ export default function DonePage() {
     if (sessionId) {
       fetch(`/dashboard/api/billing/session-status?session_id=${sessionId}`)
           .then((res) => res.json())
-          .then((data) => setStatus(data.status))
+          .then((data) => setStatus(data.status)
+          )
     }
+    else { // If there's no session_id, assume the user has an active subscription
+       setStatus("complete") }
   }, [sessionId])
 
   const handleManageBilling = async () => {
@@ -57,11 +61,11 @@ export default function DonePage() {
                   Manage billing information
                 </Button>
             )}
-            <Link href="/dashboard/billing" className="block">
-              <Button variant="outline" className="w-full">
-                Return to Billing
-              </Button>
-            </Link>
+            {/*<Link href="/dashboard/billing" className="block">*/}
+            {/*  <Button variant="outline" className="w-full">*/}
+            {/*    Return to Billing*/}
+            {/*  </Button>*/}
+            {/*</Link>*/}
           </div>
         </div>
       </div>

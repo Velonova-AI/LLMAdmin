@@ -1,22 +1,32 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import stripe from "@/lib/stripe"
+import {auth} from "@/app/(auth)/auth";
+import {db} from "@/app/dashboard/db";
+import {assistants, subscriptions} from "@/lib/db/schema";
+import {eq} from "drizzle-orm";
+
 
 export async function POST() {
-  const cookieStore = await cookies()
-  const sessionId = cookieStore.get("sessionId")?.value
+  const session = await auth();
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
 
-  if (!sessionId) {
-    return NextResponse.json({ error: "Session ID not found" }, { status: 400 })
+  const userId = session.user.id;
+  const userSubscription =  await db.select().from(subscriptions).
+           where(eq(subscriptions.userId, userId)).limit(1);
+
+
+
+  if (!userSubscription) {
+    return NextResponse.json({ error: "No active subscription" }, { status: 400 })
   }
 
   try {
-    const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId)
-    const customerId = checkoutSession.customer as string
-
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: `${process.env.NEXT_PUBLIC_URL}/dashboard/billing`,
+      customer: userSubscription[0].stripeCustomerId,
+      return_url: `${process.env.NEXT_PUBLIC_URL}/dashboard/billing/`,
     })
 
     return NextResponse.json({ url: portalSession.url })

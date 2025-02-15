@@ -107,6 +107,27 @@ export const suggestion = pgTable(
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
 
+
+export const subscriptions = pgTable("subscriptions", {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+        .notNull()
+        .references(() => user.id),
+    stripeCustomerId: text("stripe_customer_id").notNull(),
+    stripePriceId: text("stripe_price_id").notNull(),
+    stripeSubscriptionId: text("stripe_subscription_id").notNull(),
+    status: text("status").notNull(),
+    currentPeriodStart: timestamp("current_period_start").notNull(),
+    currentPeriodEnd: timestamp("current_period_end").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})
+
+export type Subscription = typeof subscriptions.$inferSelect
+
+
+
+
 export const feedbacks = pgTable("feedbacks", {
     id: uuid('id').primaryKey().notNull().defaultRandom(),
     subject: text("subject").notNull(),

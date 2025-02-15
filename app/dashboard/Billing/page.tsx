@@ -1,115 +1,43 @@
-"use client"
 
-import { useState } from "react"
-import { Button } from "@/app/ui/assistants/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import EmbeddedCheckoutComponent from "@/app/ui/billing/embedded-checkout"
+import { redirect } from "next/navigation"
 
-const products = {
-  monthly: [
-    {
-      name: "Free",
-      description: "Assist",
-      price: "0",
-      priceId: "price_free_monthly",
-      period: "month",
-      units: 1,
-      perUnit: true,
-    },
-    {
-      name: "Professional",
-      description: "assist 2",
-      price: "25",
-      priceId: "price_professional_monthly",
-      period: "month",
-      units: 3,
-      perUnit: true,
+import { eq } from "drizzle-orm"
+import { subscriptions } from "@/lib/db/schema"
+import BillingPageContent from "./BillingPageContent"
+import {auth} from "@/app/(auth)/auth";
+import {db} from "@/app/dashboard/db";
 
-    },
-  ],
-  yearly: [
-    {
-      name: "Free",
-      description: "Assist",
-      price: "0",
-      priceId: "price_free_yearly",
-      period: "year",
-      units: 1,
-      perUnit: true,
-    },
-    {
-      name: "Professional",
-      description: "assist 2",
-      price: "250",
-      priceId: "price_professional_yearly",
-      period: "year",
-      units: 3,
-      perUnit: true,
 
-    },
-  ],
-}
+export default async function BillingPage() {
+    const session = await auth();
 
-export default function BillingPage() {
-  const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null)
-  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly")
+    if (!session || !session.user) {
+        redirect("/login")
+        return;
+    }
 
-  if (selectedPriceId) {
-    return <EmbeddedCheckoutComponent priceId={selectedPriceId} />
-  }
+    const userId = session.user.id
 
-  return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex justify-center">
-          <div className="inline-flex rounded-full bg-[#F3F4F6] p-1">
-            <button
-                onClick={() => setBillingInterval("monthly")}
-                className={`rounded-full px-8 py-2 text-sm font-medium transition-colors ${
-                    billingInterval === "monthly" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-200"
-                }`}
-            >
-              Monthly
-            </button>
-            <button
-                onClick={() => setBillingInterval("yearly")}
-                className={`rounded-full px-8 py-2 text-sm font-medium transition-colors ${
-                    billingInterval === "yearly" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-200"
-                }`}
-            >
-              Yearly
-            </button>
-          </div>
-        </div>
+    if (!userId) {
+        // Handle the case where userId is undefined
+        redirect("/login");
+        return;
+    }
+        console.log(userId);
+    const userSubscription = await db.select().from(subscriptions).
+    where(eq(subscriptions.userId, userId)).limit(1);
 
-        <div className="grid gap-6 md:grid-cols-2 lg:gap-8 max-w-5xl mx-auto">
-          {products[billingInterval].map((product) => (
-              <Card key={product.priceId} className="relative border border-gray-200 bg-white">
-                <CardHeader className="space-y-1 pb-4 pt-6">
-                  <h3 className="text-2xl font-bold text-gray-900">{product.name}</h3>
-                  <p className="text-sm text-gray-500">{product.description}</p>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="flex items-baseline text-3xl font-bold text-gray-900">
-                    <span className="text-xl">€</span>
-                    {product.price}
-                    <span className="ml-1 text-base font-normal text-gray-500">
-                  /{billingInterval === "monthly" ? "month" : "year"}
-                </span>
-                  </div>
-                  <div className="mt-1 text-sm text-gray-500">
-                    {product.units} {product.units === 1 ? "unit" : "units"} included
-                  </div>
+    console.log("sub");
+    console.log(userSubscription);
 
-                </CardContent>
-                <CardFooter className="pb-6">
-                  <Button className="w-full" variant="default" onClick={() => setSelectedPriceId(product.priceId)}>
-                    Subscribe
-                  </Button>
-                </CardFooter>
-              </Card>
-          ))}
-        </div>
-      </div>
-  )
+
+
+
+    if (userSubscription && userSubscription.length > 0) {
+
+        redirect("/dashboard/billing/done")
+    }
+
+    return <BillingPageContent />
 }
 
