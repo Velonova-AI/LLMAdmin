@@ -8,7 +8,16 @@ import {eq} from "drizzle-orm";
 
 export async function POST(request: Request) {
   const body = await request.text()
-  const signature = await  headers().get("stripe-signature") as string
+    const headersList = await headers();
+    const signature = headersList.get('stripe-signature');
+  // const signature = await  headers().get("stripe-signature") as string
+
+    if (!signature) {
+        return NextResponse.json(
+            { error: 'Missing stripe-signature header' },
+            { status: 400 }
+        );
+    }
 
   let event
 
@@ -22,8 +31,9 @@ export async function POST(request: Request) {
 
     const session = event.data.object as Stripe.Checkout.Session
 
-  const userId = session.metadata?.userId;
-  console.log("userId:", userId);
+   const qid = session.metadata?.quantity;
+
+  console.log("hi :" + qid);
 
 
   if (event.type === "checkout.session.completed") {
@@ -34,7 +44,9 @@ export async function POST(request: Request) {
         stripeCustomerId: session.customer as string,
         stripePriceId: subscription.items.data[0].price.id,
         stripeSubscriptionId: subscription.id,
-        status: subscription.status,
+          quantity: Number.parseInt(session.metadata?.quantity || "1", 10),
+
+          status: subscription.status,
         currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       })

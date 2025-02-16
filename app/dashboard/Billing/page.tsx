@@ -23,12 +23,11 @@ export default async function BillingPage() {
         redirect("/login");
         return;
     }
-        console.log(userId);
+
     const userSubscription = await db.select().from(subscriptions).
     where(eq(subscriptions.userId, userId)).limit(1);
 
-    console.log("sub");
-    console.log(userSubscription);
+
 
 
 

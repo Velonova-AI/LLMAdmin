@@ -1,17 +1,24 @@
 import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import {deleteAssistant} from "@/app/ui/assistants/actions";
+import {useAssistantQuantityStore} from "@/app/dashboard/assistantQuantityStore";
+import {Button} from "@/app/ui/assistants/button";
 
 export function CreateAssistant() {
+  const { totalAllowed, currentCount } = useAssistantQuantityStore()
+  const isLimitReached = currentCount >= totalAllowed
+
+  console.log("cuu " + currentCount + " total " + totalAllowed)
+
+  if (isLimitReached) {
+    return <p>Plan Assistant Limit Reached, Hence cannot create more</p>
+  }
+
   return (
-    <Link
-      href="/dashboard/assistant/create"
-      className="flex h-10 items-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-    >
-      <span className="hidden md:block">Create Assistant</span>{' '}
-      <PlusIcon className="h-5 md:ml-4" />
-    </Link>
-  );
+      <Link href="/dashboard/assistant/create" passHref>
+        <Button>Create Assistant</Button>
+      </Link>
+  )
 }
 
 export function UpdateAssistant({ id }: { id: string }) {

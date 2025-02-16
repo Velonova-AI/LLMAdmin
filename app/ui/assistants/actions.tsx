@@ -4,9 +4,9 @@ import { z } from "zod"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
-import { eq } from "drizzle-orm"
+import {count, eq} from "drizzle-orm"
 import { auth } from "@/app/(auth)/auth"
-import {assistants, feedbacks, ModelName, ModelProvider, ModelType, user} from "@/lib/db/schema"
+import {assistants, feedbacks, ModelName, ModelProvider, ModelType, subscriptions, user} from "@/lib/db/schema"
 import postgres from "postgres"
 import { drizzle } from "drizzle-orm/postgres-js"
 
@@ -78,6 +78,33 @@ const CreateAssistant = z.object({
 })
 
 export async function createAssistant(formData: FormData) {
+    const session = await auth()
+    if (!session || !session.user || !session.user.id) {
+        return redirect("/login")
+    }
+
+    // Fetch user's subscription
+    const userSubscription = await db.select().from(subscriptions)
+        .where(eq(subscriptions.userId, session.user.id))
+        .limit(1)
+
+    if (!userSubscription || userSubscription.length === 0) {
+        return { error: "No active subscription found" }
+    }
+
+    const subscription = userSubscription[0]
+
+    // Count existing assistants
+    const existingAssistantsCount = await db.select({ count: count() })
+        .from(assistants)
+        .where(eq(assistants.userId, session.user.id))
+
+    const currentAssistantCount = Number(existingAssistantsCount[0].count)
+
+    if (currentAssistantCount >= subscription.quantity) {
+        return { error: `Your plan allows only ${subscription.quantity} assistant${subscription.quantity > 1 ? 's' : ''}` }
+    }
+
     const { name, description, provider, modelName, type, systemPrompt, temperature, maxTokens, suggestions, apiKey } =
         CreateAssistant.parse({
             name: formData.get("name"),
@@ -91,11 +118,6 @@ export async function createAssistant(formData: FormData) {
             suggestions: JSON.parse(formData.get("suggestions") as string),
             apiKey: formData.get("apiKey"),
         })
-
-    const session = await auth()
-    if (!session || !session.user || !session.user.id) {
-        return redirect("/login")
-    }
 
     const assistantData: typeof assistants.$inferInsert = {
         name,
@@ -116,6 +138,48 @@ export async function createAssistant(formData: FormData) {
     revalidatePath("/dashboard")
     redirect("/dashboard")
 }
+
+
+
+// export async function createAssistant(formData: FormData) {
+//     const { name, description, provider, modelName, type, systemPrompt, temperature, maxTokens, suggestions, apiKey } =
+//         CreateAssistant.parse({
+//             name: formData.get("name"),
+//             description: formData.get("description") || undefined,
+//             provider: formData.get("provider"),
+//             modelName: formData.get("modelName"),
+//             type: formData.get("type"),
+//             systemPrompt: formData.get("systemPrompt") || undefined,
+//             temperature: Number.parseFloat(formData.get("temperature") as string),
+//             maxTokens: Number.parseInt(formData.get("maxTokens") as string, 10),
+//             suggestions: JSON.parse(formData.get("suggestions") as string),
+//             apiKey: formData.get("apiKey"),
+//         })
+//
+//     const session = await auth()
+//     if (!session || !session.user || !session.user.id) {
+//         return redirect("/login")
+//     }
+//
+//     const assistantData: typeof assistants.$inferInsert = {
+//         name,
+//         description,
+//         provider,
+//         modelName,
+//         type,
+//         systemPrompt,
+//         temperature,
+//         maxTokens,
+//         suggestions: JSON.stringify(suggestions),
+//         apiKey,
+//         userId: session.user.id,
+//     }
+//
+//     await db.insert(assistants).values(assistantData)
+//
+//     revalidatePath("/dashboard")
+//     redirect("/dashboard")
+// }
 
 
 export async function editAssistantById(id:string) {

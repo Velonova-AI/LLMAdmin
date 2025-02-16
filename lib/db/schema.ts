@@ -119,6 +119,8 @@ export const subscriptions = pgTable("subscriptions", {
     status: text("status").notNull(),
     currentPeriodStart: timestamp("current_period_start").notNull(),
     currentPeriodEnd: timestamp("current_period_end").notNull(),
+    quantity: integer("quantity").notNull().default(1),
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })

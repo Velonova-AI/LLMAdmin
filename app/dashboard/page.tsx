@@ -4,7 +4,7 @@
 // import { InvoicesTableSkeleton } from '@/components/ui/assistants/skeletons';
 'use client';
 
-import { Suspense } from 'react';
+import {Suspense, useEffect, useState} from 'react';
 import {auth} from "@/app/(auth)/auth";
 import AssistantsTable from "@/app/dashboard/assistant/table";
 import {useAssistantStore} from "@/app/dashboard/store";
@@ -12,6 +12,7 @@ import {Assistant} from "@/lib/db/schema";
 import Search from "@/app/ui/search";
 import { use } from 'react';
 import {CreateAssistant} from "@/app/ui/assistants/buttons";
+import {useAssistantQuantityStore} from "@/app/dashboard/assistantQuantityStore";
 
 type SearchParams = {
     query?: string;
@@ -24,10 +25,46 @@ export default function Home({
     searchParams: Promise<SearchParams>;
 } ) {
     const { assistant  } = useAssistantStore()
+    const { setTotalAllowed, setCurrentCount } = useAssistantQuantityStore()
+    const [isLoading, setIsLoading] = useState(true)
+
     const resolvedSearchParams = use(searchParams);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const [subscriptionResponse, assistantsCountResponse] = await Promise.all([
+                    fetch("/dashboard/api/billing/subscriptions"),
+                    fetch("/dashboard/api/assistants/count"),
+                ])
+
+                if (!subscriptionResponse.ok || !assistantsCountResponse.ok) {
+                    throw new Error("Failed to fetch data")
+                }
+
+                const subscriptionData = await subscriptionResponse.json()
+                const assistantsCountData = await assistantsCountResponse.json()
+
+
+                setTotalAllowed(subscriptionData.quantity)
+                setCurrentCount(assistantsCountData.count)
+            } catch (error) {
+                console.error("Error fetching data:", error)
+                // Handle error (e.g., show error message to user)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        fetchData()
+    }, [setTotalAllowed, setCurrentCount])
 
     if (!assistant) {
         return <div>No assistant found</div>
+    }
+
+    if (isLoading) {
+        return <div>Loading...</div>
     }
 //
 

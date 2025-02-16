@@ -8,9 +8,9 @@ export async function POST(request: Request) {
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-  const { priceId } = await request.json()
+  const { priceId, quantity } = await request.json()
 
-  if (!priceId) {
+  if (!priceId || !quantity) {
     return NextResponse.json({ error: "Price ID is required" }, { status: 400 })
   }
 
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       line_items: [
         {
           price: priceId,
-          quantity: 1,
+          quantity: quantity,
         },
       ],
       mode: "subscription",
@@ -27,6 +27,8 @@ export async function POST(request: Request) {
       return_url: `${process.env.NEXT_PUBLIC_URL}/dashboard/billing/done?session_id={CHECKOUT_SESSION_ID}`,
       metadata: {
         userId: session.user.id,
+        quantity: quantity.toString(),
+
       },
     })
 

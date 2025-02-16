@@ -13,7 +13,7 @@ const products = {
       price: "0",
       priceId: "price_1QsANBJ9QMGTomlSwmucY30X",
       period: "month",
-      units: 1,
+      assistants: 1,
       perUnit: true,
     },
     {
@@ -22,7 +22,7 @@ const products = {
       price: "25",
       priceId: "price_1QsAShJ9QMGTomlSCz65HjfR",
       period: "month",
-      units: 3,
+      assistants: 3,
       perUnit: true,
 
     },
@@ -34,7 +34,7 @@ const products = {
       price: "0",
       priceId: "price_1QsANBJ9QMGTomlSwmucY30X",
       period: "year",
-      units: 1,
+      assistants: 1,
       perUnit: true,
     },
     {
@@ -43,7 +43,7 @@ const products = {
       price: "250",
       priceId: "price_1QsAUMJ9QMGTomlS5hxS9mih",
       period: "year",
-      units: 3,
+      assistants: 3,
       perUnit: true,
 
     },
@@ -53,9 +53,11 @@ const products = {
 export default function BillingPageContent() {
   const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null)
   const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly")
+  const [selectedAssistants, setSelectedAssistants] = useState<number | null>(null)
 
   if (selectedPriceId) {
-    return <EmbeddedCheckoutComponent priceId={selectedPriceId} />
+    return <EmbeddedCheckoutComponent priceId={selectedPriceId}
+                                      quantity={selectedAssistants} />
   }
 
   return (
@@ -97,12 +99,14 @@ export default function BillingPageContent() {
                 </span>
                   </div>
                   <div className="mt-1 text-sm text-gray-500">
-                    {product.units} {product.units === 1 ? "unit" : "units"} included
+                    {product.assistants} {product.assistants === 1 ? "assistant" : "assistants"} included
                   </div>
 
                 </CardContent>
                 <CardFooter className="pb-6">
-                  <Button className="w-full" variant="default" onClick={() => setSelectedPriceId(product.priceId)}>
+                  <Button className="w-full" variant="default" onClick={() => {setSelectedPriceId(product.priceId)
+                    setSelectedAssistants(product.assistants)
+                  }}>
                     Subscribe
                   </Button>
                 </CardFooter>
