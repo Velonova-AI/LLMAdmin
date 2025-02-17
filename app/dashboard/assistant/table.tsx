@@ -30,7 +30,7 @@ import {DeleteAssistant, UpdateAssistant} from "@/app/ui/assistants/buttons";
                     const data = await res.json()
                     // const data = await fetchFilteredAssistants2(query, currentPage);
                     //console.log(data.assistants);
-                    setAssistants(data);
+                    setAssistants(data.assistants);
                 } catch (err) {
                     setError('Failed to load assistants')
                 } finally {
