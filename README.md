@@ -4,7 +4,7 @@
 </a>
 
 <p align="center">
-  An Open-Source  Admin Dashboard and Stripe Billing for AI Chatbot Template Built With Next.js and the AI SDK by Vercel.
+  An Open-Source  Admin Dashboard and Stripe Billing for AI Assistants Template Built With Next.js and the AI SDK by Vercel.
 </p>
 
 <p align="center">
