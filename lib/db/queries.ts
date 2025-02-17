@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
-import { and, asc, desc, eq, gt, gte, inArray } from 'drizzle-orm';
+import {and, asc, desc, eq, gt, gte, ilike, inArray, or} from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
@@ -29,7 +29,37 @@ const db = drizzle(client);
 
 
 
-// export async function fetchFilteredAssistants() {
+const ITEMS_PER_PAGE = 6;
+
+export async function fetchFilteredAssistants2(
+    query: string,
+    currentPage: number,
+) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const filteredAssistants = await db
+        .select()
+        .from(assistants)
+        .where(or(
+            ilike(assistants.name, `%${query}%`),
+            ilike(assistants.description, `%${query}%`),
+            ilike(assistants.provider, `%${query}%`),
+            ilike(assistants.modelName, `%${query}%`),
+            ilike(assistants.type, `%${query}%`)
+        ))
+        .orderBy(desc(assistants.createdAt))
+        .limit(ITEMS_PER_PAGE)
+        .offset(offset);
+
+    return filteredAssistants;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch assistants.');
+  }
+}
+
+// // export async function fetchFilteredAssistants() {
 //
 //
 //

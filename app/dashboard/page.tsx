@@ -4,13 +4,12 @@
 // import { InvoicesTableSkeleton } from '@/components/ui/assistants/skeletons';
 'use client';
 
-import {Suspense, useEffect, useState} from 'react';
+import {Suspense, useEffect, useState, use } from 'react';
 import {auth} from "@/app/(auth)/auth";
 import AssistantsTable from "@/app/dashboard/assistant/table";
 import {useAssistantStore} from "@/app/dashboard/store";
 import {Assistant} from "@/lib/db/schema";
 import Search from "@/app/ui/search";
-import { use } from 'react';
 import {CreateAssistant} from "@/app/ui/assistants/buttons";
 import {useAssistantQuantityStore} from "@/app/dashboard/assistantQuantityStore";
 

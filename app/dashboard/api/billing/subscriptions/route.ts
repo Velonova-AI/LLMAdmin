@@ -11,6 +11,10 @@ export async function GET() {
     }
 
     const userId = session.user.id
+
+    if (!userId){
+        return console.error("no user id found in count");
+    }
     const userSubscription = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1)
 
     if (!userSubscription || userSubscription.length === 0) {

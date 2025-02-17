@@ -21,14 +21,14 @@ interface AssistantForm {
   id: string
   name: string
   description?: string
-  apiKey: string
+  apiKey?: string
   provider: ModelProvider
   modelName: ModelName
   type: ModelType
   systemPrompt?: string
   suggestions: string[]
-  temperature: number
-  maxTokens: number
+  temperature: number | undefined
+  maxTokens: number | undefined
 }
 
 export default function EditAssistantForm({
@@ -93,7 +93,7 @@ export default function EditAssistantForm({
                     className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                     required
                 />
-                <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-gray-500" />
               </div>
             </div>
 
@@ -110,7 +110,7 @@ export default function EditAssistantForm({
                     placeholder="Assistant description (optional)"
                     className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                 />
-                <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-gray-500" />
               </div>
             </div>
 
@@ -129,7 +129,7 @@ export default function EditAssistantForm({
                     placeholder="Enter your API key"
                     required
                 />
-                <KeyIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                <KeyIcon className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-gray-500" />
               </div>
             </div>
 
@@ -151,7 +151,7 @@ export default function EditAssistantForm({
                     ))}
                   </SelectContent>
                 </Select>
-                <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-gray-500" />
               </div>
             </div>
 
@@ -173,7 +173,7 @@ export default function EditAssistantForm({
                     ))}
                   </SelectContent>
                 </Select>
-                <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-gray-500" />
               </div>
             </div>
 
@@ -195,7 +195,7 @@ export default function EditAssistantForm({
                     ))}
                   </SelectContent>
                 </Select>
-                <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-gray-500" />
               </div>
             </div>
 
@@ -213,7 +213,7 @@ export default function EditAssistantForm({
                     className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                     placeholder="Enter the system prompt for your assistant"
                 />
-                <ChatBubbleBottomCenterTextIcon className="pointer-events-none absolute left-3 top-4 h-[18px] w-[18px] text-gray-500" />
+                <ChatBubbleBottomCenterTextIcon className="pointer-events-none absolute left-3 top-4 size-[18px] text-gray-500" />
               </div>
             </div>
 
@@ -231,10 +231,10 @@ export default function EditAssistantForm({
                     className="pl-10 min-h-[80px]"
                     placeholder="Enter suggestions for the users (press Enter to add)"
                 />
-                <ChatBubbleBottomCenterTextIcon className="pointer-events-none absolute left-3 top-3 h-[18px] w-[18px] text-gray-500" />
+                <ChatBubbleBottomCenterTextIcon className="pointer-events-none absolute left-3 top-3 size-[18px] text-gray-500" />
               </div>
               <Button type="button" onClick={addPrompt} className="mt-2 w-full" variant="outline">
-                <PlusIcon className="h-4 w-4 mr-2" />
+                <PlusIcon className="size-4 mr-2" />
                 Add Prompt
               </Button>
               <ul className="mt-2 space-y-2">
@@ -251,7 +251,7 @@ export default function EditAssistantForm({
                           onClick={() => removePrompt(index)}
                           aria-label={`Remove prompt: ${prompt}`}
                       >
-                        <XMarkIcon className="h-4 w-4" />
+                        <XMarkIcon className="size-4" />
                       </Button>
                     </li>
                 ))}
@@ -275,7 +275,7 @@ export default function EditAssistantForm({
                     className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                     required
                 />
-                <AdjustmentsHorizontalIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                <AdjustmentsHorizontalIcon className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-gray-500" />
               </div>
               <p className="mt-1 text-sm text-gray-500">
                 Controls randomness in responses (0 = deterministic, 1 = creative)
@@ -297,7 +297,7 @@ export default function EditAssistantForm({
                     className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                     required
                 />
-                <AdjustmentsHorizontalIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                <AdjustmentsHorizontalIcon className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-gray-500" />
               </div>
             </div>
           </div>

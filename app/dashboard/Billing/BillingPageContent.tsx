@@ -104,7 +104,7 @@ export default function BillingPageContent() {
 
                 </CardContent>
                 <CardFooter className="pb-6">
-                  <Button className="w-full" variant="default" onClick={() => {setSelectedPriceId(product.priceId)
+                  <Button className="w-full"  onClick={() => {setSelectedPriceId(product.priceId)
                     setSelectedAssistants(product.assistants)
                   }}>
                     Subscribe

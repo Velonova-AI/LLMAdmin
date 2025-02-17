@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {fetchFilteredAssistants2} from "@/app/dashboard/assistant/data";
+import {fetchFilteredAssistants2} from "@/lib/db/queries";
+
 
 const ITEMS_PER_PAGE = 6; // Make sure this matches the value in your fetchFilteredAssistants function
 

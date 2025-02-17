@@ -31,7 +31,7 @@ export default function LoginForm() {
                 placeholder="Enter your email address"
                 required
               />
-              <AtSymbolIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+              <AtSymbolIcon className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
           </div>
           <div className="mt-4">
@@ -51,12 +51,12 @@ export default function LoginForm() {
                 required
                 minLength={6}
               />
-              <KeyIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+              <KeyIcon className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
           </div>
         </div>
         <Button className="mt-4 w-full">
-          Log in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
+          Log in <ArrowRightIcon className="ml-auto size-5 text-gray-50" />
         </Button>
         <div className="flex h-8 items-end space-x-1">
           {/* Add form errors here */}

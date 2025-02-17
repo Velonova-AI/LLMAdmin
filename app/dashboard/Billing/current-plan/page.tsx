@@ -15,6 +15,10 @@ export default async function CurrentPlanPage() {
     }
 
     const userId = session.user.id
+
+    if (!userId){
+        return console.error("no user id found in count");
+    }
     const userSubscription = await await db.select().from(subscriptions).
     where(eq(subscriptions.userId, userId)).limit(1);
 

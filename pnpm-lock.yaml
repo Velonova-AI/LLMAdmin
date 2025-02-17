@@ -73,7 +73,7 @@ importers:
         version: 5.6.0
       '@vercel/analytics':
         specifier: ^1.3.1
-        version: 1.3.2(next@15.0.3-canary.2(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
+        version: 1.3.2(next@15.2.0-canary.63(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
       '@vercel/blob':
         specifier: ^0.24.1
         version: 0.24.1
@@ -109,7 +109,7 @@ importers:
         version: 16.4.5
       drizzle-orm:
         specifier: ^0.34.1
-        version: 0.34.1(@neondatabase/serverless@0.9.5)(@opentelemetry/api@1.9.0)(@types/pg@8.11.6)(@types/react@18.3.12)(@vercel/postgres@0.10.0)(postgres@3.4.5)(react@19.0.0-rc-45804af1-20241021)
+        version: 0.34.1(@neondatabase/serverless@0.9.5)(@opentelemetry/api@1.9.0)(@types/pg@8.11.11)(@types/react@18.3.12)(@vercel/postgres@0.10.0)(pg@8.13.3)(postgres@3.4.5)(react@19.0.0-rc-45804af1-20241021)
       fast-deep-equal:
         specifier: ^3.1.3
         version: 3.1.3
@@ -118,7 +118,7 @@ importers:
         version: 11.11.10(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
       geist:
         specifier: ^1.3.1
-        version: 1.3.1(next@15.0.3-canary.2(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))
+        version: 1.3.1(next@15.2.0-canary.63(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))
       lucide-react:
         specifier: ^0.446.0
         version: 0.446.0(react@19.0.0-rc-45804af1-20241021)
@@ -126,11 +126,11 @@ importers:
         specifier: ^5.0.8
         version: 5.0.8
       next:
-        specifier: 15.0.3-canary.2
-        version: 15.0.3-canary.2(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
+        specifier: 15.2.0-canary.63
+        version: 15.2.0-canary.63(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
       next-auth:
         specifier: 5.0.0-beta.25
-        version: 5.0.0-beta.25(next@15.0.3-canary.2(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
+        version: 5.0.0-beta.25(next@15.2.0-canary.63(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
       next-themes:
         specifier: ^0.3.0
         version: 0.3.0(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
@@ -140,6 +140,9 @@ importers:
       papaparse:
         specifier: ^5.5.2
         version: 5.5.2
+      pg:
+        specifier: ^8.13.3
+        version: 8.13.3
       postgres:
         specifier: ^3.4.4
         version: 3.4.5
@@ -237,6 +240,9 @@ importers:
       '@types/pdf-parse':
         specifier: ^1.1.4
         version: 1.1.4
+      '@types/pg':
+        specifier: ^8.11.11
+        version: 8.11.11
       '@types/react':
         specifier: ^18
         version: 18.3.12
@@ -1071,56 +1077,56 @@ packages:
   '@neondatabase/serverless@0.9.5':
     resolution: {integrity: sha512-siFas6gItqv6wD/pZnvdu34wEqgG3nSE6zWZdq5j2DEsa+VvX8i/5HXJOo06qrw5axPXn+lGCxeR+NLaSPIXug==}
 
-  '@next/env@15.0.3-canary.2':
-    resolution: {integrity: sha512-+1Gbej9xUFJuXl8R0hQh7yGsfOOhf/U7CPpu9o980G5upph6iCPIVcn6GE4pnF7gK4mPn+paBMMtqjIl3XOdpA==}
+  '@next/env@15.2.0-canary.63':
+    resolution: {integrity: sha512-RtwfK4Q/Ro/Azx1zbEQm4r5arc9XjnDlzAgtqwn5f6kWLv830T82eSYvdHgPsbaekp/REGaUTSPrcr2neSE9tQ==}
 
   '@next/eslint-plugin-next@14.2.5':
     resolution: {integrity: sha512-LY3btOpPh+OTIpviNojDpUdIbHW9j0JBYBjsIp8IxtDFfYFyORvw3yNq6N231FVqQA7n7lwaf7xHbVJlA1ED7g==}
 
-  '@next/swc-darwin-arm64@15.0.3-canary.2':
-    resolution: {integrity: sha512-gB0z5Src6KZ6/JqWM/CL/6kJUD8SKanrBlrsNUfOj3ZzQlP7aov6K63P7zUIKXuB7QK0rwfgLuncUHKm+PWsuA==}
+  '@next/swc-darwin-arm64@15.2.0-canary.63':
+    resolution: {integrity: sha512-GEM1OxC7Bv9WLz6r32MN07legKsJXG1nXDx/muD1y/EDYQ3BQcUE+LLq6Pm2rA5W0wPNhsO5L9mKEHRjKGsDfg==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [darwin]
 
-  '@next/swc-darwin-x64@15.0.3-canary.2':
-    resolution: {integrity: sha512-R6xFPG7au0tMoXfCgxHTUAhKFAtbT3om2WaXA9QVDe9b2EkxPngPinmTTdEgMuv7R1AwitcpNhhOrn9U1vqTVQ==}
+  '@next/swc-darwin-x64@15.2.0-canary.63':
+    resolution: {integrity: sha512-BFdn6Oi+yh4Wv88DGYdTiuADVlTUPO8VP3L7n3Vk8UP5ZJVJ/TMD9hkwNdHJiLVyAcHUTnUAHJTim4eYjtWLbg==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
 
-  '@next/swc-linux-arm64-gnu@15.0.3-canary.2':
-    resolution: {integrity: sha512-5fYl9TBVbUj/wXNiqjkz/WVmgVDYSi5L6KHQWRvK9UGlRAcbDLwKwBtBAm4PB4GgzPJ/aVHUdbXnEAQIP7g51A==}
+  '@next/swc-linux-arm64-gnu@15.2.0-canary.63':
+    resolution: {integrity: sha512-V4wnW5xkaO9DNyTdCvyJ+xs702s5OIbyk1CtdGYqDSJmp/WmIMW5q5CQv5Pm20PxoSdYq3GEb32+aievwkn32g==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@next/swc-linux-arm64-musl@15.0.3-canary.2':
-    resolution: {integrity: sha512-n+gMZ6dtj0BD2y6dPzzy+8r5TIQPsYNzODfAw7nwor0kGp5Y6HJwrKmnDj3wDTEEh2107gq27T7g8BlcNXl0Nw==}
+  '@next/swc-linux-arm64-musl@15.2.0-canary.63':
+    resolution: {integrity: sha512-Lae1i26H0DSJy9rF8kQIICPOG0oeSrZ/5I9b/D+js6k9fBl+mTauD09o1yh+SxS7qd8rUWiiWu+bMAtfl5wbvw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@next/swc-linux-x64-gnu@15.0.3-canary.2':
-    resolution: {integrity: sha512-PEpD1RinW/+IK/zLilM8dhinLhZXduY0+PYN7V5lKDbzQs5y0yp4vneXAtEt5oHGoi7bWA2arlVO5e2AWqRpFA==}
+  '@next/swc-linux-x64-gnu@15.2.0-canary.63':
+    resolution: {integrity: sha512-um92NoxZetPfaLMekvgVFHx5kS6XAseik+zFaOfqTYHK99ncn+iBn+tF5MgyzmtjhAzPHWUTtfim5SSOUbEI7w==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@next/swc-linux-x64-musl@15.0.3-canary.2':
-    resolution: {integrity: sha512-bCGz+q00/mzA3K4Jsb/kzH5ivFrHgXpZY+zWxC9sgfxObhvl9bx/MlPdoYI4FwOGuQC+mbgLUOHpNvXSswbrjw==}
+  '@next/swc-linux-x64-musl@15.2.0-canary.63':
+    resolution: {integrity: sha512-8Ba3JYNU4CKyGfQ/WNICY51OGY951H+RLNdy5gJgSmusc25NYeOizwmQ3wAtQeWbgyaRFANvvECYeR03DwGP9w==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@next/swc-win32-arm64-msvc@15.0.3-canary.2':
-    resolution: {integrity: sha512-W5MCeg0LVV3xxUoLt5fIV1d+M6LSLkp4vvg32ZTSkshf5lPvWG612U/8rWAoJacfYue8FaPTFOQ7Gg10E+Qhig==}
+  '@next/swc-win32-arm64-msvc@15.2.0-canary.63':
+    resolution: {integrity: sha512-iDqABo8AjqwgTLUZrhI8x9eHsfMRUJ0EAeiGwLHC3wC9NsnzYprTQ0NHc3UXy9iVTnp2WuytjIDIGeYHVnaXXQ==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [win32]
 
-  '@next/swc-win32-x64-msvc@15.0.3-canary.2':
-    resolution: {integrity: sha512-o1RAgC6m5wY0TpDIMTw+V1wQp9gOC/+WqKBWE0YslF9B9jg7Tj3+/cOcs4t6T/cvm1S8ILtD0qUCZqkWSDtcrQ==}
+  '@next/swc-win32-x64-msvc@15.2.0-canary.63':
+    resolution: {integrity: sha512-Sdk2vvrcOi7FAnwxJh4lr9XNojvrh7ozibm6dMDfDfJLo4hAN51fngMgN0kvITQ79H6Z5KHLOoQRghjo71P5hg==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
@@ -1546,8 +1552,8 @@ packages:
   '@swc/counter@0.1.3':
     resolution: {integrity: sha512-e2BR4lsJkkRlKZ/qCHPw9ZaSxc0MVUd7gtbtaB7aMvHeJVYe8sOB8DBZkP2DtISHGSku9sCK6T6cnY0CtXrOCQ==}
 
-  '@swc/helpers@0.5.13':
-    resolution: {integrity: sha512-UoKGxQ3r5kYI9dALKJapMmuK+1zWM/H17Z1+iwnNmzcJRnfFuevZs375TA5rW31pu4BS4NoSy1fRsexDXfWn5w==}
+  '@swc/helpers@0.5.15':
+    resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
   '@tailwindcss/typography@0.5.15':
     resolution: {integrity: sha512-AqhlCXl+8grUz8uqExv5OTtgpjuVIwFTSXTrh8y9/pw6q2ek7fJ+Y8ZEVw7EB2DCcuCOtEjf9w3+J3rzts01uA==}
@@ -1604,6 +1610,9 @@ packages:
 
   '@types/pdf-parse@1.1.4':
     resolution: {integrity: sha512-+gbBHbNCVGGYw1S9lAIIvrHW47UYOhMIFUsJcMkMrzy1Jf0vulBN3XQIjPgnoOXveMuHnF3b57fXROnY/Or7eg==}
+
+  '@types/pg@8.11.11':
+    resolution: {integrity: sha512-kGT1qKM8wJQ5qlawUrEkXgvMSXoV213KfMGXcwfDwUIfUHXqXYXOfS1nE1LINRJVVVx5wCm70XnFlMHaIcQAfw==}
 
   '@types/pg@8.11.6':
     resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
@@ -3020,16 +3029,16 @@ packages:
       react: ^16.8 || ^17 || ^18
       react-dom: ^16.8 || ^17 || ^18
 
-  next@15.0.3-canary.2:
-    resolution: {integrity: sha512-vGutHxoPrZuZNVxD/HZRRyOY1X2+StTlbwzJA2Ck4lGofVsccdQjDuc89WAmg9vFYXjHf+mYqi8WYcXM5SJymw==}
+  next@15.2.0-canary.63:
+    resolution: {integrity: sha512-zg+1agjMps87e+DBe5KY7ytCBJWDUJeEsctFBh9e39+Z82G02MWSO7TNqAA/vvkUamcFxw5rWnlgQVvueShM6Q==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
       '@playwright/test': ^1.41.2
       babel-plugin-react-compiler: '*'
-      react: ^18.2.0 || 19.0.0-rc-603e6108-20241029
-      react-dom: ^18.2.0 || 19.0.0-rc-603e6108-20241029
+      react: ^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0
+      react-dom: ^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0
       sass: ^1.3.0
     peerDependenciesMeta:
       '@opentelemetry/api':
@@ -3149,6 +3158,12 @@ packages:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
 
+  pg-cloudflare@1.1.1:
+    resolution: {integrity: sha512-xWPagP/4B6BgFO+EKz3JONXv3YDgvkbVrGw2mTo3D6tVDQRh1e7cqVGvyR3BE+eQgAvx1XhW/iEASj4/jCWl3Q==}
+
+  pg-connection-string@2.7.0:
+    resolution: {integrity: sha512-PI2W9mv53rXJQEOb8xNR8lH7Hr+EKa6oJa38zsK0S/ky2er16ios1wLKhZyxzD7jUReiWokc9WK5nxSnC7W1TA==}
+
   pg-int8@1.0.1:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
     engines: {node: '>=4.0.0'}
@@ -3157,12 +3172,36 @@ packages:
     resolution: {integrity: sha512-BM/Thnrw5jm2kKLE5uJkXqqExRUY/toLHda65XgFTBTFYZyopbKjBe29Ii3RbkvlsMoFwD+tHeGaCjjv0gHlyw==}
     engines: {node: '>=4'}
 
+  pg-pool@3.7.1:
+    resolution: {integrity: sha512-xIOsFoh7Vdhojas6q3596mXFsR8nwBQBXX5JiV7p9buEVAGqYL4yFzclON5P9vFrpu1u7Zwl2oriyDa89n0wbw==}
+    peerDependencies:
+      pg: '>=8.0'
+
   pg-protocol@1.7.0:
     resolution: {integrity: sha512-hTK/mE36i8fDDhgDFjy6xNOG+LCorxLG3WO17tku+ij6sVHXh1jQUJ8hYAnRhNla4QVD2H8er/FOjc/+EgC6yQ==}
+
+  pg-protocol@1.7.1:
+    resolution: {integrity: sha512-gjTHWGYWsEgy9MsY0Gp6ZJxV24IjDqdpTW7Eh0x+WfJLFsm/TJx1MzL6T0D88mBvkpxotCQ6TwW6N+Kko7lhgQ==}
+
+  pg-types@2.2.0:
+    resolution: {integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==}
+    engines: {node: '>=4'}
 
   pg-types@4.0.2:
     resolution: {integrity: sha512-cRL3JpS3lKMGsKaWndugWQoLOCoP+Cic8oseVcbr0qhPzYD5DWXK+RZ9LY9wxRf7RQia4SCwQlXk0q6FCPrVng==}
     engines: {node: '>=10'}
+
+  pg@8.13.3:
+    resolution: {integrity: sha512-P6tPt9jXbL9HVu/SSRERNYaYG++MjnscnegFh9pPHihfoBSujsrka0hyuymMzeJKFWrcG8wvCKy8rCe8e5nDUQ==}
+    engines: {node: '>= 8.0.0'}
+    peerDependencies:
+      pg-native: '>=3.0.1'
+    peerDependenciesMeta:
+      pg-native:
+        optional: true
+
+  pgpass@1.0.5:
+    resolution: {integrity: sha512-FdW9r/jQZhSeohs1Z3sI1yxFQNFvMcnmfuj4WBMUTxOrAyLMaTcE1aAMBiTlbMNaXvBCQuVi0R7hd8udDSP7ug==}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -3232,17 +3271,33 @@ packages:
     resolution: {integrity: sha512-56rxCq7G/XfB4EkXq9Egn5GCqugWvDFjafDOThIdMBsI15iqPqR5r15TfSr1YPYeEI19YeaXMCbY6u88Y76GLQ==}
     engines: {node: ^10 || ^12 || >=14}
 
+  postgres-array@2.0.0:
+    resolution: {integrity: sha512-VpZrUqU5A69eQyW2c5CA1jtLecCsN2U/bD6VilrFDWq5+5UIEVO7nazS3TEcHf1zuPYO/sqGvUvW62g86RXZuA==}
+    engines: {node: '>=4'}
+
   postgres-array@3.0.2:
     resolution: {integrity: sha512-6faShkdFugNQCLwucjPcY5ARoW1SlbnrZjmGl0IrrqewpvxvhSLHimCVzqeuULCbG0fQv7Dtk1yDbG3xv7Veog==}
     engines: {node: '>=12'}
+
+  postgres-bytea@1.0.0:
+    resolution: {integrity: sha512-xy3pmLuQqRBZBXDULy7KbaitYqLcmxigw14Q5sj8QBVLqEwXfeybIKVWiqAXTlcvdvb0+xkOtDbfQMOf4lST1w==}
+    engines: {node: '>=0.10.0'}
 
   postgres-bytea@3.0.0:
     resolution: {integrity: sha512-CNd4jim9RFPkObHSjVHlVrxoVQXz7quwNFpz7RY1okNNme49+sVyiTvTRobiLV548Hx/hb1BG+iE7h9493WzFw==}
     engines: {node: '>= 6'}
 
+  postgres-date@1.0.7:
+    resolution: {integrity: sha512-suDmjLVQg78nMK2UZ454hAG+OAW+HQPZ6n++TNDUX+L0+uUlLywnoxJKDou51Zm+zTCjrCl0Nq6J9C5hP9vK/Q==}
+    engines: {node: '>=0.10.0'}
+
   postgres-date@2.1.0:
     resolution: {integrity: sha512-K7Juri8gtgXVcDfZttFKVmhglp7epKb1K4pgrkLxehjqkrgPhfG6OO8LHLkfaqkbpjNRnra018XwAr1yQFWGcA==}
     engines: {node: '>=12'}
+
+  postgres-interval@1.2.0:
+    resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
+    engines: {node: '>=0.10.0'}
 
   postgres-interval@3.0.0:
     resolution: {integrity: sha512-BSNDnbyZCXSxgA+1f5UU2GmwhoI0aU5yMxRGO8CdFEcY2BQF9xm/7MqKnYoM1nJDk8nONNWDk9WeSmePFhQdlw==}
@@ -3553,6 +3608,10 @@ packages:
 
   space-separated-tokens@2.0.2:
     resolution: {integrity: sha512-PEGlAwrG8yXGXRjW32fGbg66JAlOAwbObuqVoJpv/mRgoWDQfgH1wDPvtzWyUSNAXBGSk8h755YDbbcEy3SH2Q==}
+
+  split2@4.2.0:
+    resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
+    engines: {node: '>= 10.x'}
 
   streamsearch@1.1.0:
     resolution: {integrity: sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==}
@@ -3871,6 +3930,10 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
+
+  xtend@4.0.2:
+    resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
+    engines: {node: '>=0.4'}
 
   yaml@2.6.0:
     resolution: {integrity: sha512-a6ae//JvKDEra2kdi1qzCyrJW/WZCgFi8ydDV+eXExl95t+5R+ijnqHJbz9tmMh8FUjx3iv2fCQ4dclAQlO2UQ==}
@@ -4498,34 +4561,34 @@ snapshots:
     dependencies:
       '@types/pg': 8.11.6
 
-  '@next/env@15.0.3-canary.2': {}
+  '@next/env@15.2.0-canary.63': {}
 
   '@next/eslint-plugin-next@14.2.5':
     dependencies:
       glob: 10.3.10
 
-  '@next/swc-darwin-arm64@15.0.3-canary.2':
+  '@next/swc-darwin-arm64@15.2.0-canary.63':
     optional: true
 
-  '@next/swc-darwin-x64@15.0.3-canary.2':
+  '@next/swc-darwin-x64@15.2.0-canary.63':
     optional: true
 
-  '@next/swc-linux-arm64-gnu@15.0.3-canary.2':
+  '@next/swc-linux-arm64-gnu@15.2.0-canary.63':
     optional: true
 
-  '@next/swc-linux-arm64-musl@15.0.3-canary.2':
+  '@next/swc-linux-arm64-musl@15.2.0-canary.63':
     optional: true
 
-  '@next/swc-linux-x64-gnu@15.0.3-canary.2':
+  '@next/swc-linux-x64-gnu@15.2.0-canary.63':
     optional: true
 
-  '@next/swc-linux-x64-musl@15.0.3-canary.2':
+  '@next/swc-linux-x64-musl@15.2.0-canary.63':
     optional: true
 
-  '@next/swc-win32-arm64-msvc@15.0.3-canary.2':
+  '@next/swc-win32-arm64-msvc@15.2.0-canary.63':
     optional: true
 
-  '@next/swc-win32-x64-msvc@15.0.3-canary.2':
+  '@next/swc-win32-x64-msvc@15.2.0-canary.63':
     optional: true
 
   '@nodelib/fs.scandir@2.1.5':
@@ -4926,7 +4989,7 @@ snapshots:
 
   '@swc/counter@0.1.3': {}
 
-  '@swc/helpers@0.5.13':
+  '@swc/helpers@0.5.15':
     dependencies:
       tslib: 2.8.0
 
@@ -4988,6 +5051,12 @@ snapshots:
       '@types/node': 22.9.0
 
   '@types/pdf-parse@1.1.4': {}
+
+  '@types/pg@8.11.11':
+    dependencies:
+      '@types/node': 22.9.0
+      pg-protocol: 1.7.1
+      pg-types: 4.0.2
 
   '@types/pg@8.11.6':
     dependencies:
@@ -5052,11 +5121,11 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vercel/analytics@1.3.2(next@15.0.3-canary.2(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)':
+  '@vercel/analytics@1.3.2(next@15.2.0-canary.63(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)':
     dependencies:
       server-only: 0.0.1
     optionalDependencies:
-      next: 15.0.3-canary.2(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
+      next: 15.2.0-canary.63(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
       react: 19.0.0-rc-45804af1-20241021
 
   '@vercel/blob@0.24.1':
@@ -5443,13 +5512,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.34.1(@neondatabase/serverless@0.9.5)(@opentelemetry/api@1.9.0)(@types/pg@8.11.6)(@types/react@18.3.12)(@vercel/postgres@0.10.0)(postgres@3.4.5)(react@19.0.0-rc-45804af1-20241021):
+  drizzle-orm@0.34.1(@neondatabase/serverless@0.9.5)(@opentelemetry/api@1.9.0)(@types/pg@8.11.11)(@types/react@18.3.12)(@vercel/postgres@0.10.0)(pg@8.13.3)(postgres@3.4.5)(react@19.0.0-rc-45804af1-20241021):
     optionalDependencies:
       '@neondatabase/serverless': 0.9.5
       '@opentelemetry/api': 1.9.0
-      '@types/pg': 8.11.6
+      '@types/pg': 8.11.11
       '@types/react': 18.3.12
       '@vercel/postgres': 0.10.0
+      pg: 8.13.3
       postgres: 3.4.5
       react: 19.0.0-rc-45804af1-20241021
 
@@ -5941,9 +6011,9 @@ snapshots:
 
   functions-have-names@1.2.3: {}
 
-  geist@1.3.1(next@15.0.3-canary.2(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)):
+  geist@1.3.1(next@15.2.0-canary.63(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)):
     dependencies:
-      next: 15.0.3-canary.2(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
+      next: 15.2.0-canary.63(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
 
   get-intrinsic@1.2.4:
     dependencies:
@@ -6746,10 +6816,10 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  next-auth@5.0.0-beta.25(next@15.0.3-canary.2(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021):
+  next-auth@5.0.0-beta.25(next@15.2.0-canary.63(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021):
     dependencies:
       '@auth/core': 0.37.2
-      next: 15.0.3-canary.2(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
+      next: 15.2.0-canary.63(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
       react: 19.0.0-rc-45804af1-20241021
 
   next-themes@0.3.0(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021):
@@ -6757,11 +6827,11 @@ snapshots:
       react: 19.0.0-rc-45804af1-20241021
       react-dom: 19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021)
 
-  next@15.0.3-canary.2(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021):
+  next@15.2.0-canary.63(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021):
     dependencies:
-      '@next/env': 15.0.3-canary.2
+      '@next/env': 15.2.0-canary.63
       '@swc/counter': 0.1.3
-      '@swc/helpers': 0.5.13
+      '@swc/helpers': 0.5.15
       busboy: 1.6.0
       caniuse-lite: 1.0.30001673
       postcss: 8.4.31
@@ -6769,14 +6839,14 @@ snapshots:
       react-dom: 19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021)
       styled-jsx: 5.1.6(react@19.0.0-rc-45804af1-20241021)
     optionalDependencies:
-      '@next/swc-darwin-arm64': 15.0.3-canary.2
-      '@next/swc-darwin-x64': 15.0.3-canary.2
-      '@next/swc-linux-arm64-gnu': 15.0.3-canary.2
-      '@next/swc-linux-arm64-musl': 15.0.3-canary.2
-      '@next/swc-linux-x64-gnu': 15.0.3-canary.2
-      '@next/swc-linux-x64-musl': 15.0.3-canary.2
-      '@next/swc-win32-arm64-msvc': 15.0.3-canary.2
-      '@next/swc-win32-x64-msvc': 15.0.3-canary.2
+      '@next/swc-darwin-arm64': 15.2.0-canary.63
+      '@next/swc-darwin-x64': 15.2.0-canary.63
+      '@next/swc-linux-arm64-gnu': 15.2.0-canary.63
+      '@next/swc-linux-arm64-musl': 15.2.0-canary.63
+      '@next/swc-linux-x64-gnu': 15.2.0-canary.63
+      '@next/swc-linux-x64-musl': 15.2.0-canary.63
+      '@next/swc-win32-arm64-msvc': 15.2.0-canary.63
+      '@next/swc-win32-x64-msvc': 15.2.0-canary.63
       '@opentelemetry/api': 1.9.0
       sharp: 0.33.5
     transitivePeerDependencies:
@@ -6890,11 +6960,30 @@ snapshots:
 
   path-type@4.0.0: {}
 
+  pg-cloudflare@1.1.1:
+    optional: true
+
+  pg-connection-string@2.7.0: {}
+
   pg-int8@1.0.1: {}
 
   pg-numeric@1.0.2: {}
 
+  pg-pool@3.7.1(pg@8.13.3):
+    dependencies:
+      pg: 8.13.3
+
   pg-protocol@1.7.0: {}
+
+  pg-protocol@1.7.1: {}
+
+  pg-types@2.2.0:
+    dependencies:
+      pg-int8: 1.0.1
+      postgres-array: 2.0.0
+      postgres-bytea: 1.0.0
+      postgres-date: 1.0.7
+      postgres-interval: 1.2.0
 
   pg-types@4.0.2:
     dependencies:
@@ -6905,6 +6994,20 @@ snapshots:
       postgres-date: 2.1.0
       postgres-interval: 3.0.0
       postgres-range: 1.1.4
+
+  pg@8.13.3:
+    dependencies:
+      pg-connection-string: 2.7.0
+      pg-pool: 3.7.1(pg@8.13.3)
+      pg-protocol: 1.7.1
+      pg-types: 2.2.0
+      pgpass: 1.0.5
+    optionalDependencies:
+      pg-cloudflare: 1.1.1
+
+  pgpass@1.0.5:
+    dependencies:
+      split2: 4.2.0
 
   picocolors@1.1.1: {}
 
@@ -6954,7 +7057,7 @@ snapshots:
 
   postcss@8.4.31:
     dependencies:
-      nanoid: 3.3.7
+      nanoid: 3.3.8
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
@@ -6964,13 +7067,23 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
+  postgres-array@2.0.0: {}
+
   postgres-array@3.0.2: {}
+
+  postgres-bytea@1.0.0: {}
 
   postgres-bytea@3.0.0:
     dependencies:
       obuf: 1.1.2
 
+  postgres-date@1.0.7: {}
+
   postgres-date@2.1.0: {}
+
+  postgres-interval@1.2.0:
+    dependencies:
+      xtend: 4.0.2
 
   postgres-interval@3.0.0: {}
 
@@ -7384,6 +7497,8 @@ snapshots:
 
   space-separated-tokens@2.0.2: {}
 
+  split2@4.2.0: {}
+
   streamsearch@1.1.0: {}
 
   string-width@4.2.3:
@@ -7772,6 +7887,8 @@ snapshots:
   ws@8.18.0(bufferutil@4.0.8):
     optionalDependencies:
       bufferutil: 4.0.8
+
+  xtend@4.0.2: {}
 
   yaml@2.6.0: {}
 

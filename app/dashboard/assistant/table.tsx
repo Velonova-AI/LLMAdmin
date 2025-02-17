@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import {fetchFilteredAssistants} from "./api";
+
 import {Assistant} from "@/lib/db/schema";
 import {useAssistantStore} from "@/app/dashboard/store";
 import {useEffect, useState} from "react";
@@ -25,9 +25,12 @@ import {DeleteAssistant, UpdateAssistant} from "@/app/ui/assistants/buttons";
             async function loadAssistants() {
                 try {
                     setIsLoading(true)
-                    const data = await fetchFilteredAssistants(query, currentPage);
+
+                    const res = await fetch('/dashboard/api/assistants')
+                    const data = await res.json()
+                    // const data = await fetchFilteredAssistants2(query, currentPage);
                     //console.log(data.assistants);
-                    setAssistants(data.assistants);
+                    setAssistants(data);
                 } catch (err) {
                     setError('Failed to load assistants')
                 } finally {
@@ -122,15 +125,15 @@ import {DeleteAssistant, UpdateAssistant} from "@/app/ui/assistants/buttons";
                                         <p>{assistant.name}</p>
                                     </div>
                                 </td>
-                                <td className="whitespace-nowrap px-3 py-3">{assistant.modelName}</td>
-                                <td className="whitespace-nowrap px-3 py-3">{assistant.provider}</td>
-                                <td className="whitespace-nowrap px-3 py-3">
+                                <td className="whitespace-nowrap p-3">{assistant.modelName}</td>
+                                <td className="whitespace-nowrap p-3">{assistant.provider}</td>
+                                <td className="whitespace-nowrap p-3">
 
 
                                         <Link
 
                                             href='/'
-                                            className={`block w-full h-full text-blue-600 underline cursor-pointer transition-colors`}
+                                            className={`block size-full text-blue-600 underline cursor-pointer transition-colors`}
 
                                             onClick={() => handleRowClick(assistant)}
                                             target="_blank"

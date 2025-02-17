@@ -22,9 +22,9 @@ const Product: React.FC<ProductProps> = ({ name, price, priceId, period, image }
       body: JSON.stringify({ priceId }),
     })
 
-    const { clientSecret } = await response.json()
+    const { sessionId } = await response.json()
     const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-    await stripe?.redirectToCheckout({ clientSecret })
+    await stripe?.redirectToCheckout({ sessionId })
   }
 
   return (

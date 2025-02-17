@@ -10,12 +10,23 @@ export async function POST(request: Request) {
     }
   const { priceId, quantity } = await request.json()
 
+  const userId = session.user.id;
+
+  if (!userId){
+    return console.error("no user id found in count");
+  }
+
   if (!priceId || !quantity) {
     return NextResponse.json({ error: "Price ID is required" }, { status: 400 })
   }
 
+  // if (typeof priceId !== 'string' || typeof quantity !== 'number') {
+  //   return NextResponse.json({ error: "Invalid data types for priceId or quantity" }, { status: 400 });
+  // }
+
   try {
     const stripeSession = await stripe.checkout.sessions.create({
+
       line_items: [
         {
           price: priceId,
@@ -26,14 +37,13 @@ export async function POST(request: Request) {
       ui_mode: "embedded",
       return_url: `${process.env.NEXT_PUBLIC_URL}/dashboard/billing/done?session_id={CHECKOUT_SESSION_ID}`,
       metadata: {
-        userId: session.user.id,
+         userId: userId,
         quantity: quantity.toString(),
 
       },
     })
 
-    return NextResponse.json({ clientSecret: stripeSession.client_secret })
-  } catch (error) {
+    return NextResponse.json({ sessionId: stripeSession.id })  } catch (error) {
     console.error("Error creating checkout session:", error)
     return NextResponse.json({ error: "Error creating checkout session" }, { status: 500 })
   }

@@ -10,7 +10,11 @@ export async function GET() {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const userId = session.user.id
+    const userId = session.user.id;
+
+    if (!userId){
+        return console.error("no user id found in count");
+    }
     const assistantsCount = await db
         .select({ count: count() })
         .from(assistants)
