@@ -58,9 +58,9 @@ export default function Home({
         fetchData()
     }, [setTotalAllowed, setCurrentCount])
 
-    if (!assistant) {
-        return <div>No assistant found</div>
-    }
+    // if (!assistant) {
+    //     return <div>No assistant found</div>
+    // }
 
     if (isLoading) {
         return <div>Loading...</div>
