@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { ChatRequestOptions, CreateMessage, Message } from 'ai';
 import { memo } from 'react';
+import {useAssistantStore} from "@/app/dashboard/store";
+import {Assistant} from "@/lib/db/schema";
 
 interface SuggestedActionsProps {
   chatId: string;
@@ -13,29 +15,42 @@ interface SuggestedActionsProps {
   ) => Promise<string | null | undefined>;
 }
 
+
+const createSuggestedActions = (prompts: string[]) => {
+  return prompts.map(prompt => {
+    // Split the prompt into words
+    const parts = prompt.split(' ');
+
+    // Form title and label based on the number of words
+    let title;
+    let label;
+
+    if (parts.length > 4) {
+      title = parts.slice(0, 4).join(' ');
+      label = prompt.replace(title + ' ', '');
+    } else {
+      title = prompt;
+      label = '';
+    }
+
+    return {
+      title: title,
+      label: label,
+      action: prompt
+    };
+  });
+};
+
 function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
-  const suggestedActions = [
-    {
-      title: 'What are the advantages',
-      label: 'of using Next.js?',
-      action: 'What are the advantages of using Next.js?',
-    },
-    {
-      title: 'Write code to',
-      label: `demonstrate djikstra's algorithm`,
-      action: `Write code to demonstrate djikstra's algorithm`,
-    },
-    {
-      title: 'Help me write an essay',
-      label: `about silicon valley`,
-      action: `Help me write an essay about silicon valley`,
-    },
-    {
-      title: 'What is the weather',
-      label: 'in San Francisco?',
-      action: 'What is the weather in San Francisco?',
-    },
-  ];
+  const { assistant  } = useAssistantStore();
+
+  let prompts: string[] = [];
+
+  if (assistant) {
+    prompts = (assistant as Assistant).suggestions as unknown as string[];
+  }
+
+    const suggestedActions = createSuggestedActions(prompts);
 
   return (
     <div className="grid sm:grid-cols-2 gap-2 w-full">
