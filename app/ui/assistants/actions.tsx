@@ -60,8 +60,19 @@ const assistantSchema = z.object({
 export type AssistantForm = z.infer<typeof assistantSchema>
 
 export async function deleteAssistant(id: string) {
-    await db.delete(assistants).where(eq(assistants.id, id))
-    revalidatePath('/dashboard/')
+    try {
+        // Delete the assistant
+        await db.delete(assistants).where(eq(assistants.id, id))
+
+        // Revalidate all relevant paths
+        revalidatePath("/dashboard")
+        // If the assistant appears in other places, revalidate those too
+        redirect("/dashboard")
+
+    } catch (error) {
+        console.error("Error deleting assistant:", error)
+        throw error
+    }
 }
 
 const CreateAssistant = z.object({
