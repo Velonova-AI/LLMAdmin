@@ -153,7 +153,7 @@ export const assistants = pgTable('assistants', {
     temperature: real('temperature').default(0.7),
     maxTokens: integer('maxTokens').default(2048),
     suggestions: json('suggestions'), // Changed from array to json
-       apiKey: text('apiKey'),
+       apiKey: text('apiKey').notNull(),
     createdAt: timestamp('createdAt').notNull().defaultNow(),
     updatedAt: timestamp('updatedAt').notNull().defaultNow(),
     userId: uuid('userId')

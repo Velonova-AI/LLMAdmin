@@ -26,6 +26,7 @@ import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import {Assistant} from "@/lib/db/schema";
+import {configureModel} from "@/app/dashboard/model-config";
 //import getLanguageModel from "@/app/dashboard/assistant/assistantModel";
 
 export const maxDuration = 60;
@@ -69,23 +70,21 @@ export async function POST(request: Request) {
 
     //2552bae6-8024-4064-a8f2-ba9daeac77a4
     const assistant = selectedChatModel;
-    let model;
-    if (assistant.provider === 'OpenAI') {
-       model = myProvider.languageModel(assistant.modelName);
-    } else if (assistant.provider === 'Anthropic') {
-       model = anthropicProvider.languageModel(assistant.modelName);
-    } else {
-      throw new Error('Invalid provider selected');
-    }
 
-    console.log(model)
+
+      const model = configureModel(assistant.provider, assistant.apiKey, assistant.modelName);
+
+
+
+
+    //console.log(model)
   return createDataStreamResponse({
     execute: (dataStream) => {
       const result = streamText({
-        // model: myProvider.languageModel(selectedChatModel),
+
         model:model,
         system:assistant.systemPrompt || undefined,
-        // system: systemPrompt({ selectedChatModel }),
+
         messages,
         maxSteps: 5,
         experimental_activeTools:
