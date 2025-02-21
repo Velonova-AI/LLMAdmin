@@ -5,14 +5,10 @@ import {useAssistantQuantityStore} from "@/app/dashboard/assistantQuantityStore"
 import {Button} from "@/app/ui/assistants/button";
 
 export function CreateAssistant() {
-  const { totalAllowed, currentCount } = useAssistantQuantityStore()
-  const isLimitReached = currentCount >= totalAllowed
-
-  console.log("cuu " + currentCount + " total " + totalAllowed)
-
-  if (isLimitReached) {
-    return <p>Plan Assistant Limit Reached, Hence cannot create more</p>
-  }
+    const { totalAllowed, currentCount } = useAssistantQuantityStore()
+    const isLimitReached = totalAllowed > 0 && currentCount >= totalAllowed;
+ if (isLimitReached)
+ { return <p>Plan Assistant Limit Reached, Hence cannot create more</p>; }
 
   return (
       <Link href="/dashboard/assistant/create" passHref>
