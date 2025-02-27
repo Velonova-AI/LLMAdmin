@@ -15,7 +15,7 @@ import { Messages } from './messages';
 import { VisibilityType } from './visibility-selector';
 import { useBlockSelector } from '@/hooks/use-block';
 import { toast } from 'sonner';
-import {useAssistantStore} from "@/app/dashboard/store";
+import {useAssistantStore} from "@/app/dashboard/assistants/store";
 
 
 export function Chat({

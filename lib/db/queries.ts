@@ -15,7 +15,7 @@ import {
   type Message,
   message,
   vote,
-    assistants
+
 } from './schema';
 import { BlockKind } from '@/components/block';
 
@@ -29,56 +29,10 @@ const db = drizzle(client);
 
 
 
-const ITEMS_PER_PAGE = 6;
 
-export async function fetchFilteredAssistants2(
-    query: string,
-    currentPage: number,
-) {
-  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-  try {
-    const filteredAssistants = await db
-        .select()
-        .from(assistants)
-        .where(or(
-            ilike(assistants.name, `%${query}%`),
-            ilike(assistants.description, `%${query}%`),
-            ilike(assistants.provider, `%${query}%`),
-            ilike(assistants.modelName, `%${query}%`),
-            ilike(assistants.type, `%${query}%`)
-        ))
-        .orderBy(desc(assistants.createdAt))
-        .limit(ITEMS_PER_PAGE)
-        .offset(offset);
 
-    return filteredAssistants;
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch assistants.');
-  }
-}
 
-// // export async function fetchFilteredAssistants() {
-//
-//
-//
-//   try {
-//     return await db.select().from(assistants);
-//   } catch (error) {
-//     console.error('Failed to get assistant from database');
-//     throw error;
-//   }
-// }
-
-export async function getAssistant(modelId: string) {
-  try {
-    return await db.select().from(assistants).where(eq(assistants.id, modelId)).limit(1);
-  } catch (error) {
-    console.error('Failed to get assistant from database');
-    throw error;
-  }
-}
 
 
 

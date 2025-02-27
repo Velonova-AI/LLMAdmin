@@ -1,4 +1,5 @@
-import { FeedbackForm } from "@/app/ui/assistants/feedback-form";
+import {FeedbackForm} from "@/app/dashboard/feedback/feedback-form";
+
 
 type PageProps = {
     searchParams: Promise<{

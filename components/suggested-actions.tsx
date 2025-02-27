@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { ChatRequestOptions, CreateMessage, Message } from 'ai';
 import { memo } from 'react';
-import {useAssistantStore} from "@/app/dashboard/store";
 import {Assistant} from "@/lib/db/schema";
+import {useAssistantStore} from "@/app/dashboard/assistants/store";
 
 interface SuggestedActionsProps {
   chatId: string;

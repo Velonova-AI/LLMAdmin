@@ -12,7 +12,7 @@ import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { VisibilityType, VisibilitySelector } from './visibility-selector';
-import {useAssistantStore} from "@/app/dashboard/store";
+import {useAssistantStore} from "@/app/dashboard/assistants/store";
 
 function PureChatHeader({
   chatId,
