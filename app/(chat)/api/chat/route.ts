@@ -6,10 +6,9 @@ import {
 } from 'ai';
 
 import { auth } from '@/app/(auth)/auth';
-import {anthropicProvider, myProvider} from '@/lib/ai/models';
-import { systemPrompt } from '@/lib/ai/prompts';
+
 import {
-  deleteChatById, getAssistant,
+  deleteChatById,
   getChatById,
   saveChat,
   saveMessages,
@@ -27,7 +26,7 @@ import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import {Assistant} from "@/lib/db/schema";
 import {configureModel} from "@/app/dashboard/model-config";
-//import getLanguageModel from "@/app/dashboard/assistant/assistantModel";
+
 
 export const maxDuration = 60;
 
