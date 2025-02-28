@@ -1,6 +1,6 @@
 // lib/db/seed.ts
 
-import {  assistants, ModelProvider, ModelType, ModelName } from './schema';
+import {ModelProvider, ModelType, ModelName, assistantsTable} from './schema';
 import { v4 as uuidv4 } from 'uuid';
 import postgres from "postgres";
 import {drizzle} from "drizzle-orm/postgres-js";
@@ -56,7 +56,7 @@ async function seed() {
 
     try {
         for (const assistant of seedData) {
-            await db.insert(assistants).values(assistant);
+            await db.insert(assistantsTable).values(assistant);
         }
         console.log('Seed data inserted successfully');
     } catch (error) {

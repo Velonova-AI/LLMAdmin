@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "tsx lib/db/migrate && next build",
+    "build": "next build",
     "db:seed": "tsx lib/db/seed",
     "start": "next start",
     "lint": "next lint && biome lint --write --unsafe",

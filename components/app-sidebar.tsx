@@ -1,118 +1,67 @@
-"use client"
-import * as React from "react"
+'use client';
 
+import type { User } from 'next-auth';
+import { useRouter } from 'next/navigation';
 
-import { VersionSwitcher } from "@/components/version-switcher"
+import { PlusIcon } from '@/components/icons';
+import { SidebarHistory } from '@/components/sidebar-history';
+import { SidebarUserNav } from '@/components/sidebar-user-nav';
+import { Button } from '@/components/ui/button';
 import {
     Sidebar,
     SidebarContent,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
+    SidebarFooter,
     SidebarHeader,
     SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarRail,
-} from "@/components/ui/sidebar"
-import {usePathname} from "next/navigation";
+    useSidebar,
+} from '@/components/ui/sidebar';
+import Link from 'next/link';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
-// This is sample data.
-const data = {
-    versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
-    navMain: [
-        {
-            title: "Documentation",
-            url: "#",
-            items: [
-                {
-                    title: "Introduction",
-                    url: "/dashboard/documentation",
-                },
-                {
-                    title: "Getting Started",
-                    url: "/dashboard/documentation/getting-started",
-                },
-            ],
-        },
-        {
-            title: "Building Your Aassistant",
-            url: "#",
-            items: [
-                {
-                    title: "Manage",
-                    url: "/dashboard/assistants",
-                    isActive: true,
-                },
-                {
-                    title: "Create",
-                    url: "/dashboard/assistants/create",
-
-                },
-
-
-
-            ],
-        },
-        {
-            title: "Billing",
-            url: "#",
-            items: [
-                {
-                    title: "Manage",
-                    url: "/dashboard/billing",
-                },
-
-
-            ],
-        },
-        {
-            title: "Settings",
-            url: "#",
-            items: [
-                {
-                    title: "Feedback",
-                    url: "/dashboard/feedback",
-                },
-
-
-            ],
-        },
-    ],
-}
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const pathname = usePathname()
+export function AppSidebar({ user }: { user: User | undefined }) {
+    const router = useRouter();
+    const { setOpenMobile } = useSidebar();
 
     return (
-        <Sidebar {...props}>
+        <Sidebar className="group-data-[side=left]:border-r-0">
             <SidebarHeader>
-                <VersionSwitcher
-
-                />
-
+                <SidebarMenu>
+                    <div className="flex flex-row justify-between items-center">
+                        <Link
+                            href="/"
+                            onClick={() => {
+                                setOpenMobile(false);
+                            }}
+                            className="flex flex-row gap-3 items-center"
+                        >
+              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
+                Chatbot
+              </span>
+                        </Link>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    type="button"
+                                    className="p-2 h-fit"
+                                    onClick={() => {
+                                        setOpenMobile(false);
+                                        router.push('/');
+                                        router.refresh();
+                                    }}
+                                >
+                                    <PlusIcon />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent align="end">New Chat</TooltipContent>
+                        </Tooltip>
+                    </div>
+                </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                {/* We create a SidebarGroup for each parent. */}
-                {data.navMain.map((item) => (
-                    <SidebarGroup key={item.title}>
-                        <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
-                        <SidebarGroupContent>
-                            <SidebarMenu >
-                                {item.items.map((item) => (
-                                    <SidebarMenuItem key={item.title}>
-                                        <SidebarMenuButton asChild
-                                                           isActive={pathname === item.url}>
-                                            <a href={item.url}>{item.title}</a>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                ))}
-                            </SidebarMenu>
-                        </SidebarGroupContent>
-                    </SidebarGroup>
-                ))}
+                <SidebarHistory user={user} />
             </SidebarContent>
-            <SidebarRail />
+            <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter>
         </Sidebar>
-    )
+    );
 }
