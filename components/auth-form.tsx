@@ -2,17 +2,21 @@ import Form from 'next/form';
 
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import Link from "next/link";
+import {Checkbox} from "@/components/ui/checkbox";
 
 export function AuthForm({
   action,
   children,
   defaultEmail = '',
+                           isSignup = true,
 }: {
   action: NonNullable<
     string | ((formData: FormData) => void | Promise<void>) | undefined
   >;
   children: React.ReactNode;
   defaultEmail?: string;
+  isSignup?: boolean;
 }) {
   return (
     <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16">
@@ -53,6 +57,24 @@ export function AuthForm({
           required
         />
       </div>
+
+      {isSignup && (
+
+
+          <div className="flex items-start gap-2 mt-2">
+        <Checkbox id="consent" name="consent" required className="mt-1" />
+        <Label htmlFor="consent" className="text-sm text-zinc-600 font-normal dark:text-zinc-400 leading-tight">
+          I agree to the{" "}
+          <Link href="/terms" className="text-primary font-bold underline ">
+            Terms and Conditions
+          </Link>{" "}
+          and{" "}
+          <Link href="/terms/privacy/page" className="text-primary font-bold underline ">
+            Privacy Policy
+          </Link>
+        </Label>
+      </div>
+      )}
 
       {children}
     </Form>

@@ -15,12 +15,14 @@ export const authConfig = {
       const isOnChat = nextUrl.pathname.startsWith('/');
       const isOnRegister = nextUrl.pathname.startsWith('/register');
       const isOnLogin = nextUrl.pathname.startsWith('/login');
+      const isOnTerms = nextUrl.pathname.startsWith("/terms")
+
 
       if (isLoggedIn && (isOnLogin || isOnRegister)) {
         return Response.redirect(new URL('/', nextUrl as unknown as URL));
       }
 
-      if (isOnRegister || isOnLogin) {
+      if (isOnRegister || isOnLogin || isOnTerms) {
         return true; // Always allow access to register and login pages
       }
 
