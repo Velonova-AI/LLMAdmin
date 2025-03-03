@@ -17,9 +17,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import {router} from "next/client";
+import {useRouter} from "next/navigation";
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
+  const router = useRouter();
 
   return (
     <SidebarMenu>
@@ -50,6 +53,19 @@ export function SidebarUserNav({ user }: { user: User }) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
+            <button
+                type="button"
+                className="w-full cursor-pointer"
+                onClick={() => {
+                  router.push('/dashboard');
+                }}
+            >
+              Dashboard
+            </button>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+
               <button
                 type="button"
                 className="w-full cursor-pointer"
