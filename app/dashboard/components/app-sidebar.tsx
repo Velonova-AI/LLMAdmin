@@ -4,7 +4,7 @@ import * as React from "react"
 
 import {
     Sidebar,
-    SidebarContent,
+    SidebarContent, SidebarFooter,
     SidebarGroup,
     SidebarGroupContent,
     SidebarGroupLabel,
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/sidebar"
 import {usePathname} from "next/navigation";
 import {VersionSwitcher} from "@/app/dashboard/components/version-switcher";
+import {LogOut} from "lucide-react";
+import {signOut} from "next-auth/react";
 
 // This is sample data.
 const data = {
@@ -84,6 +86,12 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const pathname = usePathname()
 
+    const handleSignOut = async () => {
+        await signOut({
+            redirectTo: '/',
+        });
+    }
+
     return (
         <Sidebar {...props}>
             <SidebarHeader>
@@ -112,6 +120,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarGroup>
                 ))}
             </SidebarContent>
+            <SidebarFooter>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton onClick={handleSignOut}>
+                            <LogOut className="mr-2 size-4" />
+                            <span>Sign Out</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
             <SidebarRail />
         </Sidebar>
     )
