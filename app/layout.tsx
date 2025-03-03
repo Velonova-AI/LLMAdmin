@@ -4,6 +4,9 @@ import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/theme-provider';
 
 import './globals.css';
+import Link from "next/link";
+import {Shield} from "lucide-react";
+import Footer from "@/app/footer";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://neurosecure.ai'),
@@ -57,6 +60,12 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
+      <header className="container mx-auto py-6 px-4 flex justify-between items-center">
+        <Link href="https://www.neurosecure.ai/" className="text-2xl font-bold flex items-center gap-2">
+          <Shield className="size-8 text-primary" />
+          <span>NeuroSecure.ai</span>
+        </Link>
+      </header>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -66,6 +75,12 @@ export default async function RootLayout({
           <Toaster position="top-center" />
           {children}
         </ThemeProvider>
+
+      <Footer />
+
+
+
+
       </body>
     </html>
   );

@@ -69,7 +69,7 @@ export function AuthForm({
             Terms and Conditions
           </Link>{" "}
           and{" "}
-          <Link href="/terms/privacy/page" className="text-primary font-bold underline ">
+          <Link href="/terms/privacy" className="text-primary font-bold underline ">
             Privacy Policy
           </Link>
         </Label>

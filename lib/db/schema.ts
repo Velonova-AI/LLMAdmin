@@ -18,7 +18,13 @@ import {
 
 export const blockKinds = ['text', 'code', 'image', 'sheet'] as const;
 
-
+export const contacts = pgTable("contacts", {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    email: text("email").notNull(),
+    department: text("department").notNull(),
+    message: text("message").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+})
 
 //dashboard
 export const feedbacks = pgTable("feedbacks", {
