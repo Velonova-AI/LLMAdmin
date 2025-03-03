@@ -1,3 +1,5 @@
+import Footer from "@/app/footer";
+
 export default function Home() {
   return (
       <main className="mx-auto max-w-3xl">
@@ -11,7 +13,9 @@ export default function Home() {
 
 
 
+
       </main>
+
   )
 }
 

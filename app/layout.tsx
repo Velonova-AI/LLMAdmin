@@ -69,6 +69,7 @@ export default async function RootLayout({
         >
           <Toaster position="top-center" />
           {children}
+
         </ThemeProvider>
 
 
