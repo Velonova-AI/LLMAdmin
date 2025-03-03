@@ -18,6 +18,16 @@ import {
 
 export const blockKinds = ['text', 'code', 'image', 'sheet'] as const;
 
+export const icontacts = pgTable("icontacts", {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+        .notNull()
+        .references(() => user.id),
+    subject: varchar("subject", { length: 100 }).notNull(),
+    message: text("message").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+
 export const contacts = pgTable("contacts", {
     id: uuid('id').primaryKey().notNull().defaultRandom(),
     email: text("email").notNull(),
