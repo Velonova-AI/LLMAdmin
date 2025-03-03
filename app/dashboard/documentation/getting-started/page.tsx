@@ -24,7 +24,7 @@ export default function GettingStarted() {
                     </p>
                     <div className="border rounded-lg overflow-hidden mb-4">
                         <Image
-                            src="/placeholder.svg?height=200&width=600"
+                            src="/images/step1.png?height=200&width=600"
                             alt="Screenshot showing the Create button in the navigation"
                             width={600}
                             height={200}
@@ -49,7 +49,7 @@ export default function GettingStarted() {
                     </ul>
                     <div className="border rounded-lg overflow-hidden mb-4">
                         <Image
-                            src="/placeholder.svg?height=400&width=600"
+                            src="/images/step2.png?height=200&width=600"
                             alt="Screenshot of the assistant configuration form"
                             width={600}
                             height={400}
@@ -78,7 +78,7 @@ export default function GettingStarted() {
                     </p>
                     <div className="border rounded-lg overflow-hidden mb-4">
                         <Image
-                            src="/placeholder.svg?height=300&width=600"
+                            src="/images/step3.png?height=200&width=600"
                             alt="Screenshot showing the success message and access link"
                             width={600}
                             height={300}
