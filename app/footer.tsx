@@ -47,19 +47,24 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">Company</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="https://www.neurosecure.ai/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   About
                 </Link>
               </li>
              
               <li>
-                <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="https://www.neurosecure.ai/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Terms
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="https://www.neurosecure.ai/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Privacy
+                </Link>
+              </li>
+              <li>
+                <Link href="https://www.neurosecure.ai/refund" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Refund
                 </Link>
               </li>
             </ul>

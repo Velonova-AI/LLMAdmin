@@ -36,6 +36,8 @@ export const contacts = pgTable("contacts", {
     createdAt: timestamp("created_at").notNull().defaultNow(),
 })
 
+
+
 //dashboard
 export const feedbacks = pgTable("feedbacks", {
     id: uuid('id').primaryKey().notNull().defaultRandom(),
