@@ -92,6 +92,8 @@ function SurveyForm() {
 
   // EU countries first, then other countries alphabetically
   const euCountries = [
+    "Netherlands",
+    "Switzerland",
     "Austria",
     "Belgium",
     "Bulgaria",
@@ -110,8 +112,9 @@ function SurveyForm() {
     "Latvia",
     "Lithuania",
     "Luxembourg",
+    "Liechtenstein",
     "Malta",
-    "Netherlands",
+    "Norway",
     "Poland",
     "Portugal",
     "Romania",
@@ -202,7 +205,7 @@ function SurveyForm() {
     "Lesotho",
     "Liberia",
     "Libya",
-    "Liechtenstein",
+
     "Madagascar",
     "Malawi",
     "Malaysia",
@@ -229,7 +232,7 @@ function SurveyForm() {
     "Nigeria",
     "North Korea",
     "North Macedonia",
-    "Norway",
+
     "Oman",
     "Pakistan",
     "Palau",
@@ -262,7 +265,7 @@ function SurveyForm() {
     "Sri Lanka",
     "Sudan",
     "Suriname",
-    "Switzerland",
+
     "Syria",
     "Tajikistan",
     "Tanzania",
@@ -701,7 +704,7 @@ function SurveyForm() {
                         </FormLabel>
                         <FormControl>
                           <Textarea
-                              placeholder="Describe the features or improvements you'd like to see"
+                              placeholder="Data Security, Privacy, Collaboration"
                               className="min-h-[120px]"
                               {...field}
                           />
