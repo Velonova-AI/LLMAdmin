@@ -17,13 +17,14 @@ export const authConfig = {
       const isOnLogin = nextUrl.pathname.startsWith('/login');
       const isOnTerms = nextUrl.pathname.startsWith("/terms")
       const isOnContact = nextUrl.pathname.startsWith("/contact")
+      const isOnResearch = nextUrl.pathname.startsWith("/research")
 
 
       if (isLoggedIn && (isOnLogin || isOnRegister)) {
         return Response.redirect(new URL('/', nextUrl as unknown as URL));
       }
 
-      if (isOnRegister || isOnLogin || isOnTerms || isOnContact) {
+      if (isOnRegister || isOnLogin || isOnTerms || isOnContact || isOnResearch) {
         return true; // Always allow access to register and login pages
       }
 

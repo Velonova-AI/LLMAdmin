@@ -1,6 +1,7 @@
 
 import { Suspense } from "react"
 import ContactForm from "@/app/contact/contact-form";
+import Footer from "@/app/footer";
 
 export default function Home() {
     return (
@@ -14,6 +15,7 @@ export default function Home() {
                     <ContactForm />
                 </Suspense>
             </div>
+            <Footer />
         </main>
     )
 }

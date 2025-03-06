@@ -12,21 +12,63 @@ import {
     integer,
     real,
      pgEnum,
+
 } from 'drizzle-orm/pg-core';
 
 
 
 export const blockKinds = ['text', 'code', 'image', 'sheet'] as const;
 
-export const icontacts = pgTable("icontacts", {
+
+
+
+export const surveyResponses = pgTable("surveyResponses", {
     id: uuid('id').primaryKey().notNull().defaultRandom(),
-    userId: uuid('userId')
-        .notNull()
-        .references(() => user.id),
-    subject: varchar("subject", { length: 100 }).notNull(),
-    message: text("message").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    // General Information
+    name: varchar("name", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull(),
+    country: varchar("country", { length: 100 }).notNull(),
+    startupName: varchar("startup_name", { length: 255 }).notNull(),
+
+    // Content Generation Challenges
+    challenges: json("challenges").notNull(),
+    otherChallenge: text("other_challenge"),
+
+    // Generative AI
+    hasUsedAi: boolean("has_used_ai").notNull(),
+    currentSolutionName: text("current_solution_name"),
+    solutions: json("solutions"),
+    otherSolution: text("other_solution"),
+
+    // Satisfaction Gaps
+    unsatisfactorySolutions: json("unsatisfactory_solutions"),
+    otherUnsatisfactorySolution: text("other_unsatisfactory_solution"),
+
+    // Feature Expectations
+    featureExpectations: text("feature_expectations").notNull(),
+
+    // Willingness to Pay
+    likelihoodToPay: integer("likelihood_to_pay").notNull(),
+    priceRange: varchar("price_range", { length: 50 }).notNull(),
+    otherPriceRange: text("other_price_range"),
+
+    // Additional Insights
+    additionalInsights: text("additional_insights"),
+
+    // Contact Information
+    followUpInterview: boolean("follow_up_interview").notNull().default(false),
+
+    // Metadata
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
 })
+
+
+
+
+
+
+
 
 export const contacts = pgTable("contacts", {
     id: uuid('id').primaryKey().notNull().defaultRandom(),
