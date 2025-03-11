@@ -65,17 +65,17 @@ export async function createAssistant(formData: FormData) {
         const suggestions = suggestionsStr ? JSON.parse(suggestionsStr) : []
 
         // Log the received data for debugging
-        console.log("Received form data:", {
-            userId,
-            name,
-            provider,
-            modelName,
-            systemPrompt,
-            temperature: temperatureStr,
-            maxTokens: maxTokensStr,
-            ragEnabled,
-            suggestions,
-        })
+        // console.log("Received form data:", {
+        //     userId,
+        //     name,
+        //     provider,
+        //     modelName,
+        //     systemPrompt,
+        //     temperature: temperatureStr,
+        //     maxTokens: maxTokensStr,
+        //     ragEnabled,
+        //     suggestions,
+        // })
 
         // Validate the data
         const validatedData = AssistantFormSchema.parse({

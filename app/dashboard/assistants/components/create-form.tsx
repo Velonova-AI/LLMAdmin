@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Trash2, Plus } from "lucide-react"
-
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,7 +16,62 @@ import { Slider } from "@/components/ui/slider"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
-import {createAssistant} from "@/app/dashboard/assistants/lib/actions";
+import { createAssistant } from "@/app/dashboard/assistants/lib/actions"
+
+// Preset configurations for each assistant type
+const assistantPresets = {
+    grant: {
+        name: "Grant & Business Plan Generator",
+        provider: "openai",
+        modelName: "gpt-4o",
+        systemPrompt:
+            "You are an expert in creating grant proposals and business plans. Help users craft compelling, well-structured documents that clearly articulate their vision, goals, and implementation strategies.",
+        suggestions: [
+            "Help me write a grant proposal for a community garden",
+            "Create a business plan for a tech startup",
+            "Outline a funding request for an educational program",
+        ],
+        temperature: 0.7,
+        maxTokens: 2000,
+    },
+    legal: {
+        name: "Legal Policy Generator",
+        provider: "anthropic",
+        modelName: "claude-3-opus",
+        systemPrompt:
+            "You are a legal document specialist. Generate clear, comprehensive legal policies such as terms of service, privacy policies, and user agreements that protect businesses while remaining accessible to users.",
+        suggestions: [
+            "Create a privacy policy for my e-commerce website",
+            "Draft terms and conditions for a SaaS platform",
+            "Generate a GDPR-compliant data processing agreement",
+        ],
+        temperature: 0.3,
+        maxTokens: 4000,
+    },
+    marketing: {
+        name: "Marketing Content Generator",
+        provider: "openai",
+        modelName: "gpt-4o",
+        systemPrompt:
+            "You are a creative marketing expert. Generate engaging, persuasive content for various marketing channels that captures attention, communicates value propositions, and drives conversions.",
+        suggestions: [
+            "Write social media posts for a product launch",
+            "Create email newsletter content for a seasonal promotion",
+            "Draft a compelling product description for my new service",
+        ],
+        temperature: 0.8,
+        maxTokens: 1500,
+    },
+    custom: {
+        name: "Custom Assistant",
+        provider: "",
+        modelName: "",
+        systemPrompt: "",
+        suggestions: [],
+        temperature: 0.7,
+        maxTokens: 2000,
+    },
+}
 
 const formSchema = z.object({
     name: z.string().min(2, {
@@ -39,10 +94,12 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>
 
 export function CreateForm() {
+    const router = useRouter()
     const [suggestions, setSuggestions] = useState<string[]>([])
     const [newSuggestion, setNewSuggestion] = useState("")
     const [files, setFiles] = useState<File[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [selectedPreset, setSelectedPreset] = useState<string>("custom")
     const formRef = useRef<HTMLFormElement>(null)
 
     const form = useForm<FormValues>({
@@ -59,6 +116,23 @@ export function CreateForm() {
     })
 
     const ragEnabled = form.watch("ragEnabled") === "yes"
+
+    // Function to apply preset configuration
+    const applyPreset = (presetKey: string) => {
+        setSelectedPreset(presetKey)
+        const preset = assistantPresets[presetKey as keyof typeof assistantPresets]
+
+        // Update form values
+        form.setValue("name", preset.name)
+        form.setValue("provider", preset.provider)
+        form.setValue("modelName", preset.modelName)
+        form.setValue("systemPrompt", preset.systemPrompt)
+        form.setValue("temperature", preset.temperature)
+        form.setValue("maxTokens", preset.maxTokens)
+
+        // Update suggestions
+        setSuggestions([...preset.suggestions])
+    }
 
     async function onSubmit(values: FormValues) {
         if (!formRef.current) return
@@ -96,22 +170,22 @@ export function CreateForm() {
             )
 
             // Submit the form using the server action
-            const result = await createAssistant(formData)
+            await createAssistant(formData)
 
-            // Handle the result
-            if (result.success) {
-                alert("Assistant created successfully!")
-                // Reset the form
-                form.reset()
-                setSuggestions([])
-                setFiles([])
-            } else {
-                console.error("Server validation error:", result.errors || result.message)
-                alert(`Error: ${result.message}`)
+            // If we get here, it means no redirect happened
+            // Reset the form
+            form.reset()
+            setSuggestions([])
+            setFiles([])
+        } catch (error: any) {
+            // If this is a redirect error from Next.js, don't show an alert
+            if (error?.digest?.includes("NEXT_REDIRECT")) {
+                // This is a redirect, let Next.js handle it
+                return
             }
-        } catch (error) {
-            console.error("Error submitting form:", error)
 
+            console.error("Error submitting form:", error)
+            alert("An error occurred while creating the assistant.")
         } finally {
             setIsSubmitting(false)
         }
@@ -143,6 +217,22 @@ export function CreateForm() {
 
     return (
         <Form {...form}>
+            <div className="mb-6">
+                <FormLabel className="text-base">Assistant Type</FormLabel>
+                <p className="text-sm text-muted-foreground mb-3">Select a preset or create a custom assistant</p>
+                <Select value={selectedPreset} onValueChange={applyPreset}>
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a preset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="grant">Grant & Business Plan Generator</SelectItem>
+                        <SelectItem value="legal">Legal Policy Generator</SelectItem>
+                        <SelectItem value="marketing">Marketing Content Generator</SelectItem>
+                        <SelectItem value="custom">Custom Assistant</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
             <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormField
                     control={form.control}
@@ -166,7 +256,7 @@ export function CreateForm() {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Provider</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select provider" />
@@ -191,7 +281,7 @@ export function CreateForm() {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Model</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select model" />
@@ -276,6 +366,7 @@ export function CreateForm() {
                                         max={2}
                                         step={0.1}
                                         defaultValue={[field.value]}
+                                        value={[field.value]}
                                         onValueChange={(value) => field.onChange(value[0])}
                                     />
                                 </FormControl>
@@ -297,6 +388,7 @@ export function CreateForm() {
                                         max={32000}
                                         step={1}
                                         defaultValue={[field.value]}
+                                        value={[field.value]}
                                         onValueChange={(value) => field.onChange(value[0])}
                                     />
                                 </FormControl>
