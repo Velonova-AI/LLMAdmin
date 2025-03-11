@@ -1,11 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef } from "react"
-import { useForm } from "react-hook-form"
+import { useState, useRef  } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Trash2, Plus } from "lucide-react"
+import { Trash2, Plus, AlertCircle, Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -16,7 +15,9 @@ import { Slider } from "@/components/ui/slider"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { createAssistant } from "@/app/dashboard/assistants/lib/actions"
+import {useForm} from "react-hook-form";
 
 // Preset configurations for each assistant type
 const assistantPresets = {
@@ -33,6 +34,7 @@ const assistantPresets = {
         ],
         temperature: 0.7,
         maxTokens: 2000,
+        apiKey: "",
     },
     legal: {
         name: "Legal Policy Generator",
@@ -47,6 +49,7 @@ const assistantPresets = {
         ],
         temperature: 0.3,
         maxTokens: 4000,
+        apiKey: "",
     },
     marketing: {
         name: "Marketing Content Generator",
@@ -61,6 +64,7 @@ const assistantPresets = {
         ],
         temperature: 0.8,
         maxTokens: 1500,
+        apiKey: "",
     },
     custom: {
         name: "Custom Assistant",
@@ -70,6 +74,7 @@ const assistantPresets = {
         suggestions: [],
         temperature: 0.7,
         maxTokens: 2000,
+        apiKey: "",
     },
 }
 
@@ -89,9 +94,17 @@ const formSchema = z.object({
     temperature: z.number().min(0).max(2),
     maxTokens: z.number().min(1).max(32000),
     ragEnabled: z.enum(["yes", "no"]),
+    apiKey: z.string().min(1, {
+        message: "API key is required.",
+    }),
 })
 
 type FormValues = z.infer<typeof formSchema>
+
+// Maximum file size in bytes (3MB)
+const MAX_FILE_SIZE = 3 * 1024 * 1024
+// Maximum total size of all files combined
+const MAX_TOTAL_SIZE = 3.5 * 1024 * 1024
 
 export function CreateForm() {
     const router = useRouter()
@@ -100,6 +113,9 @@ export function CreateForm() {
     const [files, setFiles] = useState<File[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [selectedPreset, setSelectedPreset] = useState<string>("custom")
+    const [fileError, setFileError] = useState<string | null>(null)
+    const [showApiKey, setShowApiKey] = useState(false)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const formRef = useRef<HTMLFormElement>(null)
 
     const form = useForm<FormValues>({
@@ -112,6 +128,7 @@ export function CreateForm() {
             temperature: 0.7,
             maxTokens: 2048,
             ragEnabled: "no",
+            apiKey: "",
         },
     })
 
@@ -134,10 +151,28 @@ export function CreateForm() {
         setSuggestions([...preset.suggestions])
     }
 
+    // Calculate total size of all files
+    const calculateTotalFileSize = (fileList: File[]): number => {
+        return fileList.reduce((total, file) => total + file.size, 0)
+    }
+
     async function onSubmit(values: FormValues) {
         if (!formRef.current) return
 
+        // Check total file size before submission
+        if (ragEnabled && files.length > 0) {
+            const totalSize = calculateTotalFileSize(files)
+            if (totalSize > MAX_TOTAL_SIZE) {
+                setFileError(
+                    `Total file size (${(totalSize / (1024 * 1024)).toFixed(2)}MB) exceeds the limit of ${(MAX_TOTAL_SIZE / (1024 * 1024)).toFixed(2)}MB.`,
+                )
+                return
+            }
+        }
+
         setIsSubmitting(true)
+        setFileError(null)
+        setErrorMessage(null) // Clear previous errors
 
         try {
             // Create a FormData object
@@ -151,6 +186,7 @@ export function CreateForm() {
             formData.append("temperature", values.temperature.toString())
             formData.append("maxTokens", values.maxTokens.toString())
             formData.append("ragEnabled", values.ragEnabled)
+            formData.append("apiKey", values.apiKey)
 
             // Add the suggestions as JSON
             formData.append("suggestions", JSON.stringify(suggestions))
@@ -170,9 +206,21 @@ export function CreateForm() {
             )
 
             // Submit the form using the server action
-            await createAssistant(formData)
+            const result = await createAssistant(formData)
 
-            // If we get here, it means no redirect happened
+            // Check if we got an error response
+            if (result && !result.success) {
+                setErrorMessage(result.message || "An error occurred while creating the assistant.")
+                return
+            }
+
+            // Handle successful response with redirect
+            if (result && result.success && result.redirect) {
+                router.push(result.redirect)
+                return
+            }
+
+            // If we get here, it means no redirect happened and no errors
             // Reset the form
             form.reset()
             setSuggestions([])
@@ -185,7 +233,15 @@ export function CreateForm() {
             }
 
             console.error("Error submitting form:", error)
-            alert("An error occurred while creating the assistant.")
+
+            // Check if it's a file size error
+            if (error.message && error.message.includes("Body exceeded")) {
+                setFileError(
+                    "File upload failed: The total size of all files exceeds the server limit. Please reduce the file size or number of files.",
+                )
+            } else {
+                setErrorMessage("An error occurred while creating the assistant. Please try again.")
+            }
         } finally {
             setIsSubmitting(false)
         }
@@ -204,8 +260,32 @@ export function CreateForm() {
 
     function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
         if (e.target.files) {
+            setFileError(null)
+            const newFiles = Array.from(e.target.files)
+
+            // Check individual file sizes
+            const oversizedFiles = newFiles.filter((file) => file.size > MAX_FILE_SIZE)
+            if (oversizedFiles.length > 0) {
+                setFileError(
+                    `Some files exceed the maximum size of ${MAX_FILE_SIZE / (1024 * 1024)}MB: ${oversizedFiles.map((f) => f.name).join(", ")}`,
+                )
+                e.target.value = ""
+                return
+            }
+
+            // Check total size including existing files
+            const potentialNewFiles = [...files, ...newFiles]
+            const totalSize = calculateTotalFileSize(potentialNewFiles)
+            if (totalSize > MAX_TOTAL_SIZE) {
+                setFileError(
+                    `Total file size would exceed ${(MAX_TOTAL_SIZE / (1024 * 1024)).toFixed(2)}MB. Please remove some files first.`,
+                )
+                e.target.value = ""
+                return
+            }
+
             // Add new files to existing files
-            setFiles((prevFiles) => [...prevFiles, ...Array.from(e.target.files || [])])
+            setFiles(potentialNewFiles)
         }
         // Reset the input value so the same file can be selected again if needed
         e.target.value = ""
@@ -213,10 +293,18 @@ export function CreateForm() {
 
     function removeFile(indexToRemove: number) {
         setFiles(files.filter((_, index) => index !== indexToRemove))
+        setFileError(null)
     }
 
     return (
         <Form {...form}>
+            {errorMessage && (
+                <Alert variant="destructive" className="mb-6">
+                    <AlertCircle className="size-4" />
+                    <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+            )}
+
             <div className="mb-6">
                 <FormLabel className="text-base">Assistant Type</FormLabel>
                 <p className="text-sm text-muted-foreground mb-3">Select a preset or create a custom assistant</p>
@@ -302,6 +390,34 @@ export function CreateForm() {
                         )}
                     />
                 </div>
+
+                <FormField
+                    control={form.control}
+                    name="apiKey"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>API Key</FormLabel>
+                            <div className="relative">
+                                <FormControl>
+                                    <Input type={showApiKey ? "text" : "password"} placeholder="Enter your API key" {...field} />
+                                </FormControl>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                                    onClick={() => setShowApiKey(!showApiKey)}
+                                >
+                                    {showApiKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                                </Button>
+                            </div>
+                            <FormDescription>
+                                Your API key for the selected provider. This will be encrypted before storage.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 <FormField
                     control={form.control}
@@ -439,7 +555,20 @@ export function CreateForm() {
                                     Upload Files
                                 </div>
                                 <p className="text-sm text-muted-foreground">Upload documents for your assistant to reference.</p>
+
+                                {fileError && (
+                                    <Alert variant="destructive" className="mb-4">
+                                        <AlertCircle className="size-4" />
+                                        <AlertDescription>{fileError}</AlertDescription>
+                                    </Alert>
+                                )}
+
+                                <div className="text-sm text-muted-foreground mb-2">
+                                    Maximum file size: 3MB. Total upload limit: 3.5MB.
+                                </div>
+
                                 <Input id="file-upload" type="file" multiple onChange={handleFileChange} />
+
                                 {files.length > 0 && (
                                     <div className="mt-4">
                                         <p className="text-sm font-medium mb-2">Selected files:</p>
@@ -462,6 +591,9 @@ export function CreateForm() {
                                                 </li>
                                             ))}
                                         </ul>
+                                        <div className="mt-2 text-sm text-muted-foreground">
+                                            Total size: {(calculateTotalFileSize(files) / (1024 * 1024)).toFixed(2)}MB
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -469,7 +601,7 @@ export function CreateForm() {
                     </Card>
                 )}
 
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button type="submit" className="w-full" disabled={isSubmitting || !!fileError}>
                     {isSubmitting ? "Creating..." : "Create Assistant"}
                 </Button>
             </form>

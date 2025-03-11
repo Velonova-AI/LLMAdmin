@@ -148,6 +148,7 @@ export const assistantsTable = pgTable("assistants2", {
     ragEnabled: boolean("rag_enabled").notNull().default(false),
     files: json("files").$type<string[]>().default([]),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    apiKey: text("apiKey").notNull(),
     userId: uuid('userId')
         .notNull()
         .references(() => user.id),

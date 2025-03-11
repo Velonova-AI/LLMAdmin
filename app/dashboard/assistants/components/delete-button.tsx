@@ -4,6 +4,7 @@ import { useState } from "react"
 import { TrashIcon } from "@heroicons/react/24/outline"
 import { deleteAssistant } from "../lib/actions"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -17,12 +18,21 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export default function DeleteButton({ id, name }: { id: string; name: string }) {
+    const router = useRouter()
     const [isDeleting, setIsDeleting] = useState(false)
 
     const handleDelete = async () => {
         setIsDeleting(true)
         try {
-            await deleteAssistant(id, name)
+            const result = await deleteAssistant(id, name)
+
+            if (result.success && result.redirect) {
+                router.push(result.redirect)
+            } else if (!result.success) {
+                console.error("Error deleting assistant:", result.message)
+                alert(`Error: ${result.message}`)
+                setIsDeleting(false)
+            }
         } catch (error) {
             console.error("Error deleting assistant:", error)
             setIsDeleting(false)

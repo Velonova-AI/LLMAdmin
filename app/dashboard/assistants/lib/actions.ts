@@ -1,13 +1,10 @@
 "use server"
-
-import { revalidatePath } from "next/cache"
 import { mkdir, writeFile } from "fs/promises"
 import path from "path"
 import { z } from "zod"
 import { v4 as uuidv4 } from "uuid"
 import { assistantsTable } from "@/lib/db/schema"
 import { drizzle } from "drizzle-orm/node-postgres"
-import { redirect } from "next/navigation"
 import { auth } from "@/app/(auth)/auth"
 import { sql } from "drizzle-orm"
 
@@ -15,7 +12,7 @@ import { sql } from "drizzle-orm"
 const db = drizzle(process.env.POSTGRES_URL!)
 
 // Constants for pagination
-const ITEMS_PER_PAGE = 5
+const ITEMS_PER_PAGE = 6
 
 // Make sure the user-specific files directory exists
 async function ensureUserFilesDirectory(userId: string) {
@@ -39,6 +36,7 @@ const AssistantFormSchema = z.object({
     temperature: z.coerce.number().min(0).max(2),
     maxTokens: z.coerce.number().min(1).max(32000),
     ragEnabled: z.enum(["yes", "no"]),
+    apiKey: z.string().min(1, "API key is required"),
 })
 
 export async function createAssistant(formData: FormData) {
@@ -46,7 +44,11 @@ export async function createAssistant(formData: FormData) {
         // Get the user session
         const session = await auth()
         if (!session || !session.user || !session.user.id) {
-            return redirect("/login")
+            return {
+                success: false,
+                message: "Authentication required",
+                redirect: "/login",
+            }
         }
 
         const userId = session.user.id
@@ -59,23 +61,25 @@ export async function createAssistant(formData: FormData) {
         const temperatureStr = formData.get("temperature") as string
         const maxTokensStr = formData.get("maxTokens") as string
         const ragEnabled = formData.get("ragEnabled") as string
+        const apiKey = formData.get("apiKey") as string
 
         // Parse suggestions from JSON string
         const suggestionsStr = formData.get("suggestions") as string
         const suggestions = suggestionsStr ? JSON.parse(suggestionsStr) : []
 
         // Log the received data for debugging
-        // console.log("Received form data:", {
-        //     userId,
-        //     name,
-        //     provider,
-        //     modelName,
-        //     systemPrompt,
-        //     temperature: temperatureStr,
-        //     maxTokens: maxTokensStr,
-        //     ragEnabled,
-        //     suggestions,
-        // })
+        console.log("Received form data:", {
+            userId,
+            name,
+            provider,
+            modelName,
+            systemPrompt,
+            temperature: temperatureStr,
+            maxTokens: maxTokensStr,
+            ragEnabled,
+            suggestions,
+            apiKey: "********", // Mask the API key in logs
+        })
 
         // Validate the data
         const validatedData = AssistantFormSchema.parse({
@@ -87,6 +91,7 @@ export async function createAssistant(formData: FormData) {
             temperature: temperatureStr,
             maxTokens: maxTokensStr,
             ragEnabled,
+            apiKey,
         })
 
         // Handle file uploads if RAG is enabled
@@ -130,30 +135,42 @@ export async function createAssistant(formData: FormData) {
             ragEnabled: validatedData.ragEnabled === "yes",
             files: fileNames,
             userId: userId, // Add the userId from the session
+            apiKey: validatedData.apiKey, // Store the API key
         })
 
-
+        // Return success with redirect URL
+        return {
+            success: true,
+            message: "Assistant successfully created",
+            redirect: `/dashboard/assistants?message=${encodeURIComponent(`Assistant was successfully created`)}`,
+        }
     } catch (error) {
         console.error("Error creating assistant:", error)
+
+        // Check for unique constraint violation (PostgreSQL error code 23505)
+        if (error && typeof error === "object" && "code" in error && error.code === "23505") {
+            // Simplified error message for all constraint violations
+            return {
+                success: false,
+                message: "An assistant with this name already exists. Please choose a different name.",
+                redirect: undefined,
+            }
+        }
 
         if (error instanceof z.ZodError) {
             return {
                 success: false,
-                message: "Validation failed",
-                errors: error.errors,
+                message: "Validation failed. Please check your input and try again.",
+                redirect: undefined,
             }
         }
 
         return {
             success: false,
-            message: "Failed to create assistant",
+            message: "Failed to create assistant. Please try again.",
+            redirect: undefined,
         }
     }
-
-    // Redirect to the assistants list page with success message
-    redirect(`/dashboard/assistants?message=${encodeURIComponent(`Assistant  was successfully created`)}`)
-
-
 }
 
 // Data fetching functions
@@ -173,11 +190,11 @@ export async function fetchFilteredAssistants(query: string, currentPage: number
             .from(assistantsTable)
             .where(
                 sql`"userId" = ${userId} AND (
-                    LOWER(name) LIKE LOWER(${`%${query}%`}) OR 
-                    LOWER(system_prompt) LIKE LOWER(${`%${query}%`}) OR
-                    LOWER(provider) LIKE LOWER(${`%${query}%`}) OR
-                    LOWER(model_name) LIKE LOWER(${`%${query}%`})
-                )`,
+                   LOWER(name) LIKE LOWER(${`%${query}%`}) OR 
+                   LOWER(system_prompt) LIKE LOWER(${`%${query}%`}) OR
+                   LOWER(provider) LIKE LOWER(${`%${query}%`}) OR
+                   LOWER(model_name) LIKE LOWER(${`%${query}%`})
+               )`,
             )
             .limit(ITEMS_PER_PAGE)
             .offset(offset)
@@ -204,11 +221,11 @@ export async function fetchAssistantsPages(query: string) {
             .from(assistantsTable)
             .where(
                 sql`"userId" = ${userId} AND (
-                    LOWER(name) LIKE LOWER(${`%${query}%`}) OR 
-                    LOWER(system_prompt) LIKE LOWER(${`%${query}%`}) OR
-                    LOWER(provider) LIKE LOWER(${`%${query}%`}) OR
-                    LOWER(model_name) LIKE LOWER(${`%${query}%`})
-                )`,
+                   LOWER(name) LIKE LOWER(${`%${query}%`}) OR 
+                   LOWER(system_prompt) LIKE LOWER(${`%${query}%`}) OR
+                   LOWER(provider) LIKE LOWER(${`%${query}%`}) OR
+                   LOWER(model_name) LIKE LOWER(${`%${query}%`})
+               )`,
             )
 
         const totalPages = Math.ceil(Number(count[0].count) / ITEMS_PER_PAGE)
@@ -246,7 +263,11 @@ export async function deleteAssistant(id: string, name: string) {
     // Get the user session
     const session = await auth()
     if (!session || !session.user || !session.user.id) {
-        redirect("/login")
+        return {
+            success: false,
+            message: "Authentication required",
+            redirect: "/login",
+        }
     }
 
     const userId = session.user.id
@@ -257,25 +278,27 @@ export async function deleteAssistant(id: string, name: string) {
 
         if (assistant.length === 0) {
             return {
+                success: false,
                 message: "Assistant not found or unauthorized",
-                errors: {
-                    message: ["You don't have permission to delete this assistant"],
-                },
+                redirect: undefined,
             }
         }
 
         await db.delete(assistantsTable).where(sql`id = ${id} AND "userId" = ${userId}`)
+
+        // Return success with redirect URL
+        return {
+            success: true,
+            message: "Assistant deleted successfully",
+            redirect: `/dashboard/assistants?message=${encodeURIComponent(`Assistant ${name} was successfully deleted`)}`,
+        }
     } catch (error) {
         console.error("Database Error:", error)
         return {
-            message: "Failed to delete assistant",
-            errors: {
-                message: ["An unexpected error occurred"],
-            },
+            success: false,
+            message: "Failed to delete assistant. Please try again.",
+            redirect: undefined,
         }
     }
-
-    revalidatePath("/dashboard/assistants")
-    redirect(`/dashboard/assistants?message=${encodeURIComponent(`Assistant ${name} was successfully deleted`)}`)
 }
 
