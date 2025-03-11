@@ -2,8 +2,9 @@
 // import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
 // import { fetchCustomers } from '@/app/lib/data';
 
-import { CreateForm } from "../components/create-form";
 
+
+import {CreateForm} from "@/app/dashboard/assistants/components/create-form";
 
 export default async function Page() {
     // const customers = await fetchCustomers();

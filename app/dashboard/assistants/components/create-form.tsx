@@ -1,436 +1,385 @@
 "use client"
 
 import type React from "react"
-
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useState, useRef } from "react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { X } from "lucide-react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { Trash2, Plus } from "lucide-react"
+
 
 import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { useActionState } from "react"
-import { ModelProvider, ModelType } from "@/lib/db/schema"
-import { createAssistant, type State } from "../lib/actions"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Slider } from "@/components/ui/slider"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent } from "@/components/ui/card"
+import {createAssistant} from "@/app/dashboard/assistants/lib/actions";
 
 const formSchema = z.object({
     name: z.string().min(2, {
         message: "Name must be at least 2 characters.",
     }),
-    description: z.string().optional(),
-    provider: z.enum([ModelProvider.OpenAI, ModelProvider.Anthropic]),
-    modelName: z.enum(["gpt-4o-mini", "gpt-4o", "claude-3-5-sonnet-20241022", "gpt-4-turbo", "dall-e-2", "dall-e-3"]),
-    type: z.enum([ModelType.Text, ModelType.Image]),
-    systemPrompt: z.string().optional(),
-    temperature: z.number().min(0).max(1).default(0.7),
-    maxTokens: z.number().min(1).max(4096).default(2048),
-    suggestions: z.array(z.string()).optional(),
-    apiKey: z.string().min(1, "API Key is required"),
+    provider: z.string({
+        required_error: "Please select a provider.",
+    }),
+    modelName: z.string({
+        required_error: "Please select a model.",
+    }),
+    systemPrompt: z.string().min(10, {
+        message: "System prompt must be at least 10 characters.",
+    }),
+    temperature: z.number().min(0).max(2),
+    maxTokens: z.number().min(1).max(32000),
+    ragEnabled: z.enum(["yes", "no"]),
 })
 
-export function CreateForm() {
-    const initialState: State = { message: null, errors: {} }
-    const [state, formAction] = useActionState(createAssistant, initialState)
+type FormValues = z.infer<typeof formSchema>
 
-    const form = useForm<z.infer<typeof formSchema>>({
+export function CreateForm() {
+    const [suggestions, setSuggestions] = useState<string[]>([])
+    const [newSuggestion, setNewSuggestion] = useState("")
+    const [files, setFiles] = useState<File[]>([])
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const formRef = useRef<HTMLFormElement>(null)
+
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            description: "",
-            provider: ModelProvider.OpenAI,
-            modelName: "gpt-4o",
-            type: ModelType.Text,
+            provider: "",
+            modelName: "",
             systemPrompt: "",
             temperature: 0.7,
             maxTokens: 2048,
-            suggestions: [],
-            apiKey: "",
+            ragEnabled: "no",
         },
     })
 
-    const watchProvider = form.watch("provider")
-    const watchType = form.watch("type")
-    const suggestions = form.watch("suggestions") || []
+    const ragEnabled = form.watch("ragEnabled") === "yes"
 
-    const getAvailableModels = () => {
-        if (watchType === ModelType.Image) {
-            return ["dall-e-2", "dall-e-3"]
-        }
+    async function onSubmit(values: FormValues) {
+        if (!formRef.current) return
 
-        if (watchProvider === ModelProvider.OpenAI) {
-            return ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"]
-        }
+        setIsSubmitting(true)
 
-        return ["claude-3-5-sonnet-20241022"]
-    }
+        try {
+            // Create a FormData object
+            const formData = new FormData()
 
-    const handleAddSuggestion = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === "Enter") {
-            event.preventDefault()
-            const input = event.currentTarget
-            const value = input.value.trim()
+            // Manually add all form values to ensure they're included
+            formData.append("name", values.name)
+            formData.append("provider", values.provider)
+            formData.append("modelName", values.modelName)
+            formData.append("systemPrompt", values.systemPrompt)
+            formData.append("temperature", values.temperature.toString())
+            formData.append("maxTokens", values.maxTokens.toString())
+            formData.append("ragEnabled", values.ragEnabled)
 
-            if (value) {
-                const currentSuggestions = form.getValues("suggestions") || []
-                form.setValue("suggestions", [...currentSuggestions, value])
-                input.value = ""
+            // Add the suggestions as JSON
+            formData.append("suggestions", JSON.stringify(suggestions))
+
+            // Add files if RAG is enabled
+            if (ragEnabled && files.length > 0) {
+                files.forEach((file) => {
+                    formData.append("files", file)
+                })
             }
+
+            console.log("Submitting form with values:", values)
+            console.log("Suggestions:", suggestions)
+            console.log(
+                "Files:",
+                files.map((f) => f.name),
+            )
+
+            // Submit the form using the server action
+            const result = await createAssistant(formData)
+
+            // Handle the result
+            if (result.success) {
+                alert("Assistant created successfully!")
+                // Reset the form
+                form.reset()
+                setSuggestions([])
+                setFiles([])
+            } else {
+                console.error("Server validation error:", result.errors || result.message)
+                alert(`Error: ${result.message}`)
+            }
+        } catch (error) {
+            console.error("Error submitting form:", error)
+
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
-    const handleRemoveSuggestion = (indexToRemove: number) => {
-        const currentSuggestions = form.getValues("suggestions") || []
-        form.setValue(
-            "suggestions",
-            currentSuggestions.filter((_, index) => index !== indexToRemove),
-        )
+    function addSuggestion() {
+        if (newSuggestion.trim() !== "") {
+            setSuggestions([...suggestions, newSuggestion])
+            setNewSuggestion("")
+        }
+    }
+
+    function removeSuggestion(index: number) {
+        setSuggestions(suggestions.filter((_, i) => i !== index))
+    }
+
+    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        if (e.target.files) {
+            // Add new files to existing files
+            setFiles((prevFiles) => [...prevFiles, ...Array.from(e.target.files || [])])
+        }
+        // Reset the input value so the same file can be selected again if needed
+        e.target.value = ""
+    }
+
+    function removeFile(indexToRemove: number) {
+        setFiles(files.filter((_, index) => index !== indexToRemove))
     }
 
     return (
         <Form {...form}>
-            <form action={formAction} className="space-y-8">
-                {/* Add hidden inputs for form values that aren't naturally serialized */}
-                <input type="hidden" name="provider" value={form.getValues("provider")} />
-                <input type="hidden" name="modelName" value={form.getValues("modelName")} />
-                <input type="hidden" name="type" value={form.getValues("type")} />
-                <input type="hidden" name="temperature" value={form.getValues("temperature").toString()} />
-                <input type="hidden" name="suggestions" value={JSON.stringify(form.getValues("suggestions") || [])} />
-                {/* Previous form fields remain unchanged */}
+            <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>
-                                Name <span className="text-destructive">*</span>
-                            </FormLabel>
+                            <FormLabel>Name</FormLabel>
                             <FormControl>
                                 <Input placeholder="My Assistant" {...field} />
                             </FormControl>
-                            <FormDescription>A name for your assistant</FormDescription>
+                            <FormDescription>A unique name for your AI assistant.</FormDescription>
                             <FormMessage />
-                            <div id="name-error" aria-live="polite" aria-atomic="true">
-                                {state.errors?.name &&
-                                    state.errors.name.map((error: string) => (
-                                        <p className="mt-2 text-sm text-destructive" key={error}>
-                                            {error}
-                                        </p>
-                                    ))}
-                            </div>
                         </FormItem>
                     )}
                 />
 
-                <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="This assistant helps with..." {...field} />
-                            </FormControl>
-                            <FormDescription>A brief description of what this assistant does</FormDescription>
-                            <FormMessage />
-                            <div id="description-error" aria-live="polite" aria-atomic="true">
-                                {state.errors?.description &&
-                                    state.errors.description.map((error: string) => (
-                                        <p className="mt-2 text-sm text-destructive" key={error}>
-                                            {error}
-                                        </p>
-                                    ))}
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="provider"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>
-                                Provider <span className="text-destructive">*</span>
-                            </FormLabel>
-                            <FormControl>
-                                <select
-                                    {...field}
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <option value="" disabled>
-                                        Select a provider
-                                    </option>
-                                    {Object.values(ModelProvider).map((provider) => (
-                                        <option key={provider} value={provider}>
-                                            {provider}
-                                        </option>
-                                    ))}
-                                </select>
-                            </FormControl>
-                            <FormDescription>The AI model provider</FormDescription>
-                            <FormMessage />
-                            <div id="provider-error" aria-live="polite" aria-atomic="true">
-                                {state.errors?.provider &&
-                                    state.errors.provider.map((error: string) => (
-                                        <p className="mt-2 text-sm text-destructive" key={error}>
-                                            {error}
-                                        </p>
-                                    ))}
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>
-                                Type <span className="text-destructive">*</span>
-                            </FormLabel>
-                            <FormControl>
-                                <select
-                                    {...field}
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <option value="" disabled>
-                                        Select a type
-                                    </option>
-                                    {Object.values(ModelType).map((type) => (
-                                        <option key={type} value={type}>
-                                            {type}
-                                        </option>
-                                    ))}
-                                </select>
-                            </FormControl>
-                            <FormDescription>The type of assistant</FormDescription>
-                            <FormMessage />
-                            <div id="type-error" aria-live="polite" aria-atomic="true">
-                                {state.errors?.type &&
-                                    state.errors.type.map((error: string) => (
-                                        <p className="mt-2 text-sm text-destructive" key={error}>
-                                            {error}
-                                        </p>
-                                    ))}
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="modelName"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>
-                                Model <span className="text-destructive">*</span>
-                            </FormLabel>
-                            <FormControl>
-                                <select
-                                    {...field}
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <option value="" disabled>
-                                        Select a model
-                                    </option>
-                                    {getAvailableModels().map((model) => (
-                                        <option key={model} value={model}>
-                                            {model}
-                                        </option>
-                                    ))}
-                                </select>
-                            </FormControl>
-                            <FormDescription>The specific model to use</FormDescription>
-                            <FormMessage />
-                            <div id="modelName-error" aria-live="polite" aria-atomic="true">
-                                {state.errors?.modelName &&
-                                    state.errors.modelName.map((error: string) => (
-                                        <p className="mt-2 text-sm text-destructive" key={error}>
-                                            {error}
-                                        </p>
-                                    ))}
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                {watchType === ModelType.Text && (
-                    <>
-                        <FormField
-                            control={form.control}
-                            name="systemPrompt"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>System Prompt</FormLabel>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="provider"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Provider</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
-                                        <Textarea placeholder="You are a helpful assistant..." {...field} />
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select provider" />
+                                        </SelectTrigger>
                                     </FormControl>
-                                    <FormDescription>Instructions for how the assistant should behave</FormDescription>
-                                    <FormMessage />
-                                    <div id="systemPrompt-error" aria-live="polite" aria-atomic="true">
-                                        {state.errors?.systemPrompt &&
-                                            state.errors.systemPrompt.map((error: string) => (
-                                                <p className="mt-2 text-sm text-destructive" key={error}>
-                                                    {error}
-                                                </p>
-                                            ))}
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
+                                    <SelectContent>
+                                        <SelectItem value="openai">OpenAI</SelectItem>
+                                        <SelectItem value="anthropic">Anthropic</SelectItem>
+                                        <SelectItem value="mistral">Mistral AI</SelectItem>
+                                        <SelectItem value="cohere">Cohere</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormDescription>The AI provider for your assistant.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                        <FormField
-                            control={form.control}
-                            name="temperature"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Temperature: {field.value}</FormLabel>
+                    <FormField
+                        control={form.control}
+                        name="modelName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Model</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
-                                        <Slider
-                                            min={0}
-                                            max={1}
-                                            step={0.1}
-                                            value={[field.value]}
-                                            onValueChange={([value]) => {
-                                                field.onChange(value)
-                                                form.setValue("temperature", value)
-                                            }}
-                                        />
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select model" />
+                                        </SelectTrigger>
                                     </FormControl>
-                                    <FormDescription>Controls randomness in the output (0 = deterministic, 1 = creative)</FormDescription>
-                                    <FormMessage />
-                                    <div id="temperature-error" aria-live="polite" aria-atomic="true">
-                                        {state.errors?.temperature &&
-                                            state.errors.temperature.map((error: string) => (
-                                                <p className="mt-2 text-sm text-destructive" key={error}>
-                                                    {error}
-                                                </p>
-                                            ))}
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="maxTokens"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Max Tokens</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            min={1}
-                                            max={4096}
-                                            {...field}
-                                            onChange={(e) => field.onChange(Number(e.target.value))}
-                                        />
-                                    </FormControl>
-                                    <FormDescription>Maximum length of the response</FormDescription>
-                                    <FormMessage />
-                                    <div id="maxTokens-error" aria-live="polite" aria-atomic="true">
-                                        {state.errors?.maxTokens &&
-                                            state.errors.maxTokens.map((error: string) => (
-                                                <p className="mt-2 text-sm text-destructive" key={error}>
-                                                    {error}
-                                                </p>
-                                            ))}
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-                    </>
-                )}
-
-                <FormField
-                    control={form.control}
-                    name="suggestions"
-                    render={() => (
-                        <FormItem>
-                            <FormLabel>Suggestions</FormLabel>
-                            <FormControl>
-                                <div className="space-y-4">
-                                    <Input type="text" placeholder="Type a suggestion and press Enter" onKeyDown={handleAddSuggestion} />
-                                    <div className="flex flex-wrap gap-2">
-                                        {suggestions.map((suggestion, index) => (
-                                            <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                                                {suggestion}
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-4 w-4 p-0 hover:bg-transparent"
-                                                    onClick={() => handleRemoveSuggestion(index)}
-                                                >
-                                                    <X className="h-3 w-3" />
-                                                    <span className="sr-only">Remove suggestion</span>
-                                                </Button>
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </div>
-                            </FormControl>
-                            <FormDescription>Add example queries or prompts for users (optional)</FormDescription>
-                            <FormMessage />
-                            <div id="suggestions-error" aria-live="polite" aria-atomic="true">
-                                {state.errors?.suggestions &&
-                                    state.errors.suggestions.map((error: string) => (
-                                        <p className="mt-2 text-sm text-destructive" key={error}>
-                                            {error}
-                                        </p>
-                                    ))}
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="apiKey"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>
-                                API Key <span className="text-destructive">*</span>
-                            </FormLabel>
-                            <FormControl>
-                                <Input type="password" placeholder={`Enter your ${watchProvider} API key`} {...field} />
-                            </FormControl>
-                            <FormDescription>Your API key will be encrypted before storage</FormDescription>
-                            <FormMessage />
-                            <div id="apiKey-error" aria-live="polite" aria-atomic="true">
-                                {state.errors?.apiKey &&
-                                    state.errors.apiKey.map((error: string) => (
-                                        <p className="mt-2 text-sm text-destructive" key={error}>
-                                            {error}
-                                        </p>
-                                    ))}
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                {/* General form errors */}
-                <div id="form-error" aria-live="polite" aria-atomic="true">
-                    {state.errors?.message?.map((error: string) => (
-                        <p className="mt-2 text-sm text-destructive" key={error}>
-                            {error}
-                        </p>
-                    ))}
+                                    <SelectContent>
+                                        <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                                        <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
+                                        <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
+                                        <SelectItem value="mistral-large">Mistral Large</SelectItem>
+                                        <SelectItem value="command-r">Command R</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormDescription>The model to use for your assistant.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
 
-                {/* Success message */}
-                {state.message && !state.errors && (
-                    <div aria-live="polite" aria-atomic="true">
-                        <p className="mt-2 text-sm text-green-600">{state.message}</p>
+                <FormField
+                    control={form.control}
+                    name="systemPrompt"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>System Prompt</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="You are a helpful AI assistant..." className="min-h-32" {...field} />
+                            </FormControl>
+                            <FormDescription>Instructions that define how your assistant behaves.</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <div className="space-y-4">
+                    <div>
+                        <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            Suggestions
+                        </div>
+                        <p className="text-sm text-muted-foreground">Add example queries users can select.</p>
                     </div>
+
+                    <div className="flex gap-2">
+                        <Input
+                            id="suggestions"
+                            value={newSuggestion}
+                            onChange={(e) => setNewSuggestion(e.target.value)}
+                            placeholder="Add a suggestion..."
+                            className="flex-1"
+                        />
+                        <Button type="button" onClick={addSuggestion} size="sm">
+                            <Plus className="size-4 mr-1" /> Add
+                        </Button>
+                    </div>
+
+                    {suggestions.length > 0 && (
+                        <div className="space-y-2 mt-2">
+                            {suggestions.map((suggestion, index) => (
+                                <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-md">
+                                    <span className="text-sm">{suggestion}</span>
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => removeSuggestion(index)}>
+                                        <Trash2 className="size-4 text-destructive" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="temperature"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Temperature: {field.value}</FormLabel>
+                                <FormControl>
+                                    <Slider
+                                        min={0}
+                                        max={2}
+                                        step={0.1}
+                                        defaultValue={[field.value]}
+                                        onValueChange={(value) => field.onChange(value[0])}
+                                    />
+                                </FormControl>
+                                <FormDescription>Controls randomness: lower is more deterministic.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="maxTokens"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Max Tokens: {field.value}</FormLabel>
+                                <FormControl>
+                                    <Slider
+                                        min={1}
+                                        max={32000}
+                                        step={1}
+                                        defaultValue={[field.value]}
+                                        onValueChange={(value) => field.onChange(value[0])}
+                                    />
+                                </FormControl>
+                                <FormDescription>Maximum length of the generated response.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <FormField
+                    control={form.control}
+                    name="ragEnabled"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                            <FormLabel>Enable RAG (Retrieval Augmented Generation)</FormLabel>
+                            <FormControl>
+                                <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex flex-row space-x-4"
+                                >
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                            <RadioGroupItem value="yes" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">Yes</FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                            <RadioGroupItem value="no" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">No</FormLabel>
+                                    </FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormDescription>Allow the assistant to retrieve information from uploaded files.</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {ragEnabled && (
+                    <Card>
+                        <CardContent className="pt-6">
+                            <div className="space-y-4">
+                                <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Upload Files
+                                </div>
+                                <p className="text-sm text-muted-foreground">Upload documents for your assistant to reference.</p>
+                                <Input id="file-upload" type="file" multiple onChange={handleFileChange} />
+                                {files.length > 0 && (
+                                    <div className="mt-4">
+                                        <p className="text-sm font-medium mb-2">Selected files:</p>
+                                        <ul className="space-y-2">
+                                            {files.map((file, index) => (
+                                                <li key={index} className="flex items-center justify-between bg-muted p-2 rounded-md">
+                          <span className="text-sm text-muted-foreground truncate max-w-[250px]">
+                            {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                          </span>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => removeFile(index)}
+                                                        className="size-8 p-0"
+                                                    >
+                                                        <Trash2 className="size-4 text-destructive" />
+                                                        <span className="sr-only">Remove file</span>
+                                                    </Button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
                 )}
 
-                <Button type="submit">Create Assistant</Button>
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? "Creating..." : "Create Assistant"}
+                </Button>
             </form>
         </Form>
     )

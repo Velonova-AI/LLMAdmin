@@ -7,6 +7,7 @@ import './globals.css';
 import Link from "next/link";
 import {Shield} from "lucide-react";
 import Footer from "@/app/footer";
+import {Analytics} from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://neurosecure.ai'),
@@ -76,7 +77,7 @@ export default async function RootLayout({
 
 
 
-
+        <Analytics/>
       </body>
     </html>
   );

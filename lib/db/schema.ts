@@ -11,7 +11,7 @@ import {
     boolean,
     integer,
     real,
-     pgEnum,
+    pgEnum, jsonb,
 
 } from 'drizzle-orm/pg-core';
 
@@ -133,29 +133,34 @@ export type Subscription = typeof subscriptions.$inferSelect
 
 
 
-export const assistantsTable = pgTable('assistants', {
-    id: uuid('id').primaryKey().notNull().defaultRandom(),
-    name: text('name').notNull(),
-    description: text('description'),
-    provider: text('provider', { enum: ['OpenAI', 'Anthropic'] }).notNull().default('OpenAI'),
-    modelName: text('modelName').notNull(),
-    type: text('type', { enum: ['text', 'image'] }).notNull(),
-    systemPrompt: text('systemPrompt'),
-    temperature: real('temperature').default(0.7),
-    maxTokens: integer('maxTokens').default(2048),
-    suggestions: json('suggestions'), // Changed from array to json
-    apiKey: text('apiKey').notNull(),
-    createdAt: timestamp('createdAt').notNull().defaultNow(),
-    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+
+
+
+export const assistantsTable = pgTable("assistants2", {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    name: varchar("name", { length: 255 }).notNull().unique(),
+    provider: varchar("provider", { length: 100 }).notNull(),
+    modelName: varchar("model_name", { length: 100 }).notNull(),
+    systemPrompt: text("system_prompt").notNull(),
+    suggestions: json("suggestions").$type<string[]>().default([]),
+    temperature: real("temperature").notNull().default(0.7),
+    maxTokens: integer("max_tokens").notNull().default(2048),
+    ragEnabled: boolean("rag_enabled").notNull().default(false),
+    files: json("files").$type<string[]>().default([]),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
     userId: uuid('userId')
         .notNull()
         .references(() => user.id),
-});
-
-export type Assistant = InferSelectModel<typeof assistantsTable>;
+})
 
 
-// lib/db/enums.ts
+
+export type Assistant = typeof assistantsTable.$inferSelect
+export type NewAssistant = typeof assistantsTable.$inferInsert
+
+
+
+
 
 export const ModelProvider = {
     OpenAI: 'OpenAI',

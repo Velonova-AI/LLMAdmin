@@ -1,64 +1,170 @@
-'use server';
+"use server"
+
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
+import { mkdir, writeFile } from "fs/promises"
+import path from "path"
 import { z } from "zod"
-import { createInsertSchema } from "drizzle-zod"
+import { v4 as uuidv4 } from "uuid"
+import { assistantsTable } from "@/lib/db/schema"
 import { drizzle } from "drizzle-orm/node-postgres"
-import {assistantsTable, ModelName, ModelProvider, ModelType } from "@/lib/db/schema"
+import { redirect } from "next/navigation"
+import { auth } from "@/app/(auth)/auth"
 import { sql } from "drizzle-orm"
 
+// Create a Drizzle ORM instance
 const db = drizzle(process.env.POSTGRES_URL!)
 
+// Constants for pagination
+const ITEMS_PER_PAGE = 5
 
-
-
-
-
-
-
-const formSchema = z.object({
-    name: z.string().min(2, {
-        message: "Name must be at least 2 characters.",
-    }),
-    description: z.string().optional(),
-    provider: z.enum([ModelProvider.OpenAI, ModelProvider.Anthropic]),
-    modelName: z.enum([
-        ModelName.GPT4Mini,
-        ModelName.GPT4,
-        ModelName.Claude,
-        ModelName.GPT4Turbo,
-        ModelName.DallE2,
-        ModelName.DallE3,
-    ]),
-    type: z.enum([ModelType.Text, ModelType.Image]),
-    systemPrompt: z.string().optional(),
-    temperature: z.coerce.number().min(0).max(1).default(0.7),
-    maxTokens: z.coerce.number().min(1).max(4096).default(2048),
-    suggestions: z.array(z.string()).optional(),
-    apiKey: z.string().min(1, "API Key is required"),
-})
-
-export type State = {
-    message: string | null
-    errors?: {
-        name?: string[]
-        description?: string[]
-        provider?: string[]
-        modelName?: string[]
-        type?: string[]
-        systemPrompt?: string[]
-        temperature?: string[]
-        maxTokens?: string[]
-        suggestions?: string[]
-        apiKey?: string[]
-        message?: string[]
+// Make sure the user-specific files directory exists
+async function ensureUserFilesDirectory(userId: string) {
+    try {
+        const userDir = path.join(process.cwd(), "public", "files", userId)
+        await mkdir(userDir, { recursive: true })
+        return userDir
+    } catch (error) {
+        console.error(`Failed to create files directory for user ${userId}:`, error)
+        throw error
     }
 }
 
-// Data fetching functions
- const ITEMS_PER_PAGE = 6
+// Validation schema for the form data
+const AssistantFormSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    provider: z.string().min(1, "Provider is required"),
+    modelName: z.string().min(1, "Model name is required"),
+    systemPrompt: z.string().min(10, "System prompt must be at least 10 characters"),
+    suggestions: z.array(z.string()).default([]),
+    temperature: z.coerce.number().min(0).max(2),
+    maxTokens: z.coerce.number().min(1).max(32000),
+    ragEnabled: z.enum(["yes", "no"]),
+})
 
+export async function createAssistant(formData: FormData) {
+    try {
+        // Get the user session
+        const session = await auth()
+        if (!session || !session.user || !session.user.id) {
+            return redirect("/login")
+        }
+
+        const userId = session.user.id
+
+        // Extract form fields
+        const name = formData.get("name") as string
+        const provider = formData.get("provider") as string
+        const modelName = formData.get("modelName") as string
+        const systemPrompt = formData.get("systemPrompt") as string
+        const temperatureStr = formData.get("temperature") as string
+        const maxTokensStr = formData.get("maxTokens") as string
+        const ragEnabled = formData.get("ragEnabled") as string
+
+        // Parse suggestions from JSON string
+        const suggestionsStr = formData.get("suggestions") as string
+        const suggestions = suggestionsStr ? JSON.parse(suggestionsStr) : []
+
+        // Log the received data for debugging
+        console.log("Received form data:", {
+            userId,
+            name,
+            provider,
+            modelName,
+            systemPrompt,
+            temperature: temperatureStr,
+            maxTokens: maxTokensStr,
+            ragEnabled,
+            suggestions,
+        })
+
+        // Validate the data
+        const validatedData = AssistantFormSchema.parse({
+            name,
+            provider,
+            modelName,
+            systemPrompt,
+            suggestions,
+            temperature: temperatureStr,
+            maxTokens: maxTokensStr,
+            ragEnabled,
+        })
+
+        // Handle file uploads if RAG is enabled
+        const fileNames: string[] = []
+
+        if (validatedData.ragEnabled === "yes") {
+            // Create user-specific directory
+            const userDir = await ensureUserFilesDirectory(userId)
+
+            // Get files from the FormData
+            const filesInput = formData.getAll("files") as File[]
+
+            for (const file of filesInput) {
+                if (file instanceof File && file.size > 0) {
+                    // Generate a unique filename
+                    const fileName = `${uuidv4()}-${file.name}`
+                    const filePath = path.join(userDir, fileName)
+
+                    // Convert file to ArrayBuffer and then to Buffer
+                    const arrayBuffer = await file.arrayBuffer()
+                    const buffer = Buffer.from(arrayBuffer)
+
+                    // Write the file to disk
+                    await writeFile(filePath, buffer)
+
+                    // Store just the filename in our array (we'll prepend the userId when retrieving)
+                    fileNames.push(fileName)
+                }
+            }
+        }
+
+        // Insert data into the database with userId
+        await db.insert(assistantsTable).values({
+            name: validatedData.name,
+            provider: validatedData.provider,
+            modelName: validatedData.modelName,
+            systemPrompt: validatedData.systemPrompt,
+            suggestions: validatedData.suggestions,
+            temperature: validatedData.temperature,
+            maxTokens: validatedData.maxTokens,
+            ragEnabled: validatedData.ragEnabled === "yes",
+            files: fileNames,
+            userId: userId, // Add the userId from the session
+        })
+
+
+    } catch (error) {
+        console.error("Error creating assistant:", error)
+
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                message: "Validation failed",
+                errors: error.errors,
+            }
+        }
+
+        return {
+            success: false,
+            message: "Failed to create assistant",
+        }
+    }
+
+    // Redirect to the assistants list page with success message
+    redirect(`/dashboard/assistants?message=${encodeURIComponent(`Assistant  was successfully created`)}`)
+
+
+}
+
+// Data fetching functions
 export async function fetchFilteredAssistants(query: string, currentPage: number) {
+    // Get the user session
+    const session = await auth()
+    if (!session || !session.user || !session.user.id) {
+        return []
+    }
+
+    const userId = session.user.id
     const offset = (currentPage - 1) * ITEMS_PER_PAGE
 
     try {
@@ -66,10 +172,12 @@ export async function fetchFilteredAssistants(query: string, currentPage: number
             .select()
             .from(assistantsTable)
             .where(
-                sql`LOWER(name) LIKE LOWER(${`%${query}%`}) OR 
-            LOWER(description) LIKE LOWER(${`%${query}%`}) OR
-            LOWER(provider) LIKE LOWER(${`%${query}%`}) OR
-            LOWER('modelName') LIKE LOWER(${`%${query}%`})`,
+                sql`"userId" = ${userId} AND (
+                    LOWER(name) LIKE LOWER(${`%${query}%`}) OR 
+                    LOWER(system_prompt) LIKE LOWER(${`%${query}%`}) OR
+                    LOWER(provider) LIKE LOWER(${`%${query}%`}) OR
+                    LOWER(model_name) LIKE LOWER(${`%${query}%`})
+                )`,
             )
             .limit(ITEMS_PER_PAGE)
             .offset(offset)
@@ -82,15 +190,25 @@ export async function fetchFilteredAssistants(query: string, currentPage: number
 }
 
 export async function fetchAssistantsPages(query: string) {
+    // Get the user session
+    const session = await auth()
+    if (!session || !session.user || !session.user.id) {
+        return 0
+    }
+
+    const userId = session.user.id
+
     try {
         const count = await db
             .select({ count: sql<number>`count(*)` })
             .from(assistantsTable)
             .where(
-                sql`LOWER(name) LIKE LOWER(${`%${query}%`}) OR 
-            LOWER(description) LIKE LOWER(${`%${query}%`}) OR
-            LOWER(provider) LIKE LOWER(${`%${query}%`}) OR
-            LOWER('modelName') LIKE LOWER(${`%${query}%`})`,
+                sql`"userId" = ${userId} AND (
+                    LOWER(name) LIKE LOWER(${`%${query}%`}) OR 
+                    LOWER(system_prompt) LIKE LOWER(${`%${query}%`}) OR
+                    LOWER(provider) LIKE LOWER(${`%${query}%`}) OR
+                    LOWER(model_name) LIKE LOWER(${`%${query}%`})
+                )`,
             )
 
         const totalPages = Math.ceil(Number(count[0].count) / ITEMS_PER_PAGE)
@@ -102,8 +220,21 @@ export async function fetchAssistantsPages(query: string) {
 }
 
 export async function fetchAssistantById(id: string) {
+    // Get the user session
+    const session = await auth()
+    if (!session || !session.user || !session.user.id) {
+        throw new Error("Unauthorized")
+    }
+
+    const userId = session.user.id
+
     try {
-        const result = await db.select().from(assistantsTable).where(sql`id = ${id}`)
+        const result = await db.select().from(assistantsTable).where(sql`id = ${id} AND "userId" = ${userId}`)
+
+        if (result.length === 0) {
+            throw new Error("Assistant not found or unauthorized")
+        }
+
         return result[0]
     } catch (error) {
         console.error("Database Error:", error)
@@ -111,108 +242,29 @@ export async function fetchAssistantById(id: string) {
     }
 }
 
-// Server Actions
-export async function createAssistant(prevState: State, formData: FormData): Promise<State> {
-
-
-    const validatedFields = formSchema.safeParse({
-        name: formData.get("name"),
-        description: formData.get("description"),
-        provider: formData.get("provider"),
-        modelName: formData.get("modelName"),
-        type: formData.get("type"),
-        systemPrompt: formData.get("systemPrompt"),
-        temperature: formData.get("temperature"),
-        maxTokens: formData.get("maxTokens"),
-        suggestions: JSON.parse((formData.get("suggestions") as string) || "[]"),
-        apiKey: formData.get("apiKey"),
-    })
-
-    if (!validatedFields.success) {
-        //console.log(validatedFields.data);
-
-
-        return {
-            message: "Invalid form data",
-            errors: validatedFields.error.flatten().fieldErrors,
-        }
+export async function deleteAssistant(id: string, name: string) {
+    // Get the user session
+    const session = await auth()
+    if (!session || !session.user || !session.user.id) {
+        redirect("/login")
     }
 
-
+    const userId = session.user.id
 
     try {
-        const assistantInsertSchema = createInsertSchema(assistantsTable)
-        const parsed = assistantInsertSchema.parse({
-            ...validatedFields.data,
-            userId: "775c8930-d518-446d-be76-1bdd69ddb70c", // TODO: Replace with actual user ID from auth
-        })
+        // Verify the assistant belongs to the user before deleting
+        const assistant = await db.select().from(assistantsTable).where(sql`id = ${id} AND "userId" = ${userId}`)
 
-        await db.insert(assistantsTable).values(parsed)
-    } catch (error) {
-        console.error("Database Error:", error)
-        return {
-            message: "Failed to create assistant",
-            errors: {
-                message: ["An unexpected error occurred"],
-            },
+        if (assistant.length === 0) {
+            return {
+                message: "Assistant not found or unauthorized",
+                errors: {
+                    message: ["You don't have permission to delete this assistant"],
+                },
+            }
         }
-    }
 
-    revalidatePath("/dashboard/assistants")
-    redirect(
-        `/dashboard/assistants?message=${encodeURIComponent(`Assistant ${validatedFields.data.name} was successfully created`)}`,
-    )
-}
-
-export async function updateAssistant(id: string, prevState: State, formData: FormData): Promise<State> {
-    const validatedFields = formSchema.safeParse({
-        name: formData.get("name"),
-        description: formData.get("description"),
-        provider: formData.get("provider"),
-        modelName: formData.get("modelName"),
-        type: formData.get("type"),
-        systemPrompt: formData.get("systemPrompt"),
-        temperature: formData.get("temperature"),
-        maxTokens: formData.get("maxTokens"),
-        suggestions: JSON.parse((formData.get("suggestions") as string) || "[]"),
-        apiKey: formData.get("apiKey"),
-    })
-
-    if (!validatedFields.success) {
-        return {
-            message: "Invalid form data",
-            errors: validatedFields.error.flatten().fieldErrors,
-        }
-    }
-
-    try {
-        const assistantInsertSchema = createInsertSchema(assistantsTable)
-        const parsed = assistantInsertSchema.parse({
-            ...validatedFields.data,
-            updatedAt: new Date(),
-            userId: "775c8930-d518-446d-be76-1bdd69ddb70c",
-        })
-
-        await db.update(assistantsTable).set(parsed).where(sql`id = ${id}`)
-    } catch (error) {
-        console.error("Database Error:", error)
-        return {
-            message: "Failed to update assistant",
-            errors: {
-                message: ["An unexpected error occurred"],
-            },
-        }
-    }
-
-    revalidatePath("/dashboard/assistants")
-    redirect(
-        `/dashboard/assistants?message=${encodeURIComponent(`Assistant ${validatedFields.data.name} was successfully updated`)}`,
-    )
-}
-
-export async function deleteAssistant(id: string, name: string): Promise<State> {
-    try {
-        await db.delete(assistantsTable).where(sql`id = ${id}`)
+        await db.delete(assistantsTable).where(sql`id = ${id} AND "userId" = ${userId}`)
     } catch (error) {
         console.error("Database Error:", error)
         return {
@@ -226,6 +278,4 @@ export async function deleteAssistant(id: string, name: string): Promise<State> 
     revalidatePath("/dashboard/assistants")
     redirect(`/dashboard/assistants?message=${encodeURIComponent(`Assistant ${name} was successfully deleted`)}`)
 }
-
-
 
