@@ -56,7 +56,7 @@ async function seed() {
 
     try {
         for (const assistant of seedData) {
-            await db.insert(assistantsTable).values(assistant);
+            //await db.insert(assistantsTable).values(assistant);
         }
         console.log('Seed data inserted successfully');
     } catch (error) {

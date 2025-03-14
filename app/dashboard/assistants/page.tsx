@@ -4,24 +4,25 @@ import Search from "./components/search"
 import Pagination from "./components/pagination"
 
 import { Button } from "@/components/ui/button"
-import { PlusIcon , CheckCircleIcon } from "@heroicons/react/24/outline"
+import { PlusIcon, CheckCircleIcon } from "@heroicons/react/24/outline"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import AssistantsTable from "@/app/dashboard/assistants/components/assistants-list";
+import AssistantsTable from "@/app/dashboard/assistants/components/assistants-list"
 
-export default async function AssistantsPage({
-                                                 searchParams,
-                                             }: {
-    searchParams?: {
-        query?: string
-        page?: string
-        message?: string
-    }
+// Remove the custom PageProps interface and use the correct type annotation directly
+export default async function Page(props: {
+    searchParams?: Promise<{
+        query?: string;
+        page?: string;
+        message?: string;
+
+    }>;
 }) {
-    // Use optional chaining and default values for searchParams
-    const query = searchParams?.query ?? ""
-    const currentPage = Number(searchParams?.page ?? "1")
-    const message = searchParams?.message ?? ""
+    const searchParams = await props.searchParams;
+    const query = searchParams?.query || '';
+    const currentPage = Number(searchParams?.page) || 1;
+    const message = searchParams?.message
+
 
     const assistants = await fetchFilteredAssistants(query, currentPage)
     const totalPages = await fetchAssistantsPages(query)
@@ -30,7 +31,6 @@ export default async function AssistantsPage({
         <div className="w-full">
             <div className="flex w-full items-center justify-between">
                 <h1 className="text-2xl font-bold">AI Assistants</h1>
-
             </div>
 
             {message && (

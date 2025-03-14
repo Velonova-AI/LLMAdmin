@@ -4,7 +4,7 @@ import {ModelProvider} from "@/lib/db/schema";
 
 // type ModelProvider = "openai" | "anthropic"
 
-export function configureModel(provider: ModelProvider, apiKey: string, modelName: string) {
+export function configureModel(provider: string, apiKey: string, modelName: string) {
     switch (provider.toLowerCase()) {
         case "openai":
             const openai = createOpenAI({
