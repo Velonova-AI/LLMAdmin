@@ -37,7 +37,6 @@ export function Chat({
 
   const { assistant } = useAssistantStore();
 
-//console.log(assistant)
 
   const [isClient, setIsClient] = useState(false)
 

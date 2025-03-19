@@ -71,6 +71,7 @@ export async function POST(request: Request) {
     const assistant = selectedChatModel;
 
 
+
       const model = configureModel(assistant.provider, assistant.apiKey, assistant.modelName);
 
 
