@@ -4,12 +4,15 @@ import { Chat } from '@/components/chat';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import { generateUUID } from '@/lib/utils';
 import { DataStreamHandler } from '@/components/data-stream-handler';
+import {getSelectedAssistant} from "@/app/dashboard/assistants/lib/actions2";
+import {AssistantStoreInitializer} from "@/app/dashboard/assistants/components/assistant-store-initializer";
 
 
 export default async function Page() {
   const id = generateUUID();
 
 
+    const assistant = await getSelectedAssistant()
 
 
     const cookieStore = await cookies();
@@ -20,6 +23,7 @@ export default async function Page() {
 
     return (
       <>
+
         <Chat
           key={id}
           id={id}
@@ -35,7 +39,9 @@ export default async function Page() {
 
   return (
     <>
-      <Chat
+        <AssistantStoreInitializer assistant={assistant} />
+
+        <Chat
         key={id}
         id={id}
         initialMessages={[]}

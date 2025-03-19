@@ -18,6 +18,7 @@ import {
 
 } from './schema';
 import { BlockKind } from '@/components/block';
+import {getSelectedAssistant} from "@/app/dashboard/assistants/lib/actions2";
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -26,6 +27,7 @@ import { BlockKind } from '@/components/block';
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);
+
 
 
 
@@ -67,11 +69,20 @@ export async function saveChat({
   title: string;
 }) {
   try {
+
+    const assistant = await getSelectedAssistant()
+
+    // Check if an assistant is selected
+    if (!assistant) {
+      throw new Error("No assistant selected. Please select an assistant before creating a chat.")
+    }
+
     return await db.insert(chat).values({
       id,
       createdAt: new Date(),
       userId,
       title,
+      assistantId:assistant.id,
     });
   } catch (error) {
     console.error('Failed to save chat in database');
@@ -93,10 +104,17 @@ export async function deleteChatById({ id }: { id: string }) {
 
 export async function getChatsByUserId({ id }: { id: string }) {
   try {
+
+    const assistant = await getSelectedAssistant()
+
+    // Check if an assistant is selected
+    if (!assistant) {
+      throw new Error("No assistant selected. Please select an assistant before creating a chat.")
+    }
     return await db
       .select()
       .from(chat)
-      .where(eq(chat.userId, id))
+        .where(and(eq(chat.userId, id), eq(chat.assistantId, assistant.id)))
       .orderBy(desc(chat.createdAt));
   } catch (error) {
     console.error('Failed to get chats by user from database');
