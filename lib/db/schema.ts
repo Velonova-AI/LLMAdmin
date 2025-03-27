@@ -11,11 +11,30 @@ import {
     boolean,
     integer,
     real,
-    pgEnum, jsonb,
+    pgEnum, jsonb, vector, index,
 
 } from 'drizzle-orm/pg-core';
 
 
+
+
+export const embeddings = pgTable(
+    'embeddings',
+    {
+      id: uuid('id').primaryKey().notNull().defaultRandom(),
+        assistantsTable: uuid('assistantId')
+            .notNull()
+            .references(() => assistantsTable.id),
+        content: text('content').notNull(),
+        embedding: vector('embedding', { dimensions: 1536 }).notNull(),
+    },
+    table => ({
+        embeddingIndex: index('embeddingIndex').using(
+            'hnsw',
+            table.embedding.op('vector_cosine_ops'),
+        ),
+    }),
+);
 
 export const blockKinds = ['text', 'code', 'image', 'sheet'] as const;
 

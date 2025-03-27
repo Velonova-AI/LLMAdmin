@@ -12,6 +12,9 @@ const db = drizzle(process.env.POSTGRES_URL!)
 // Cookie name for the selected assistant
 const SELECTED_ASSISTANT_COOKIE = "selected-assistant-id"
 
+
+
+
 /**
  * Save the selected assistant ID to a cookie
  */

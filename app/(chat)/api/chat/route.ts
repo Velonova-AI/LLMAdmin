@@ -26,6 +26,7 @@ import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import {Assistant} from "@/lib/db/schema";
 import {configureModel} from "@/app/dashboard/model-config";
+import {getInformation} from "@/lib/ai/tools/getInformation";
 
 
 export const maxDuration = 60;
@@ -88,18 +89,19 @@ export async function POST(request: Request) {
         messages,
         maxSteps: 5,
         experimental_activeTools:
-            assistant.modelName === 'chat-model-reasoning'
-            ? []
-            : [
+
+             [
                 'getWeather',
                 'createDocument',
                 'updateDocument',
                 'requestSuggestions',
+               'getInformation',
               ],
         experimental_transform: smoothStream({ chunking: 'word' }),
         experimental_generateMessageId: generateUUID,
         tools: {
           getWeather,
+          getInformation,
           createDocument: createDocument({ session, dataStream }),
           updateDocument: updateDocument({ session, dataStream }),
           requestSuggestions: requestSuggestions({
