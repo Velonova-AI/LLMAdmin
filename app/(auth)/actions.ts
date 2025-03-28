@@ -12,6 +12,9 @@ const authFormSchema = z.object({
 });
 
 const registerFormSchema = authFormSchema.extend({
+
+  name: z.string(),
+  lname: z.string(),
   consent: z.literal(true, {
     errorMap: () => ({ message: "You must accept the terms and conditions" }),
   }),
@@ -67,6 +70,8 @@ export const register = async (
     const validatedData = registerFormSchema.parse({
       email: formData.get("email"),
       password: formData.get("password"),
+      name: formData.get("name"),
+      lname: formData.get("lname"),
       consent: formData.get("consent") === "on",
     })
 
@@ -77,7 +82,7 @@ export const register = async (
     if (user) {
       return { status: 'user_exists' } as RegisterActionState;
     }
-    await createUser(validatedData.email, validatedData.password, validatedData.consent);
+    await createUser(validatedData.email, validatedData.password, validatedData.name,  validatedData.lname, validatedData.consent);
     await signIn('credentials', {
       email: validatedData.email,
       password: validatedData.password,

@@ -215,6 +215,8 @@ export const user = pgTable('User', {
   email: varchar('email', { length: 64 }).notNull(),
   password: varchar('password', { length: 64 }),
    consent: boolean("consent").notNull().default(false),
+    name: varchar('name', { length: 64 }).notNull(),
+    lname: varchar('lname', { length: 64 }).notNull(),
 
 
 });

@@ -20,6 +20,27 @@ export function AuthForm({
 }) {
   return (
     <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16">
+
+      {isSignup && (
+          <>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="name" className="text-zinc-600 font-normal dark:text-zinc-400">
+                First Name
+              </Label>
+
+              <Input id="name" name="name" className="bg-muted text-md md:text-sm" type="text" required autoFocus />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="lname" className="text-zinc-600 font-normal dark:text-zinc-400">
+                Last Name
+              </Label>
+
+              <Input id="lname" name="lname" className="bg-muted text-md md:text-sm" type="text" required />
+            </div>
+          </>
+      )}
+
       <div className="flex flex-col gap-2">
         <Label
           htmlFor="email"

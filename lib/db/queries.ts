@@ -47,12 +47,12 @@ export async function getUser(email: string): Promise<Array<User>> {
   }
 }
 
-export async function createUser(email: string, password: string, consent :boolean) {
+export async function createUser(email: string, password: string, name:string, lname:string, consent :boolean) {
   const salt = genSaltSync(10);
   const hash = hashSync(password, salt);
 
   try {
-    return await db.insert(user).values({ email, password: hash, consent: consent });
+    return await db.insert(user).values({ email, password: hash, name:name, lname:lname, consent: consent });
   } catch (error) {
     console.error('Failed to create user in database');
     throw error;
