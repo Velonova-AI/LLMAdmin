@@ -57,7 +57,7 @@ export default async function Page(props: {
                             {query ? `No assistants match "${query}"` : "Get started by creating a new assistant."}
                         </p>
                         {!query && (
-                            <Link href="/dashboard/assistants/new" className="mt-4">
+                            <Link href="/dashboard/assistants/create" className="mt-4">
                                 <Button>
                                     <PlusIcon className="size-5 mr-2" />
                                     Create Assistant

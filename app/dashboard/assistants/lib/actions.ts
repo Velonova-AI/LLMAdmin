@@ -7,6 +7,7 @@ import { assistantsTable } from "@/lib/db/schema"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { auth } from "@/app/(auth)/auth"
 import { sql } from "drizzle-orm"
+import {insertEmbedding} from "@/app/dashboard/assistants/lib/embeddings";
 
 // Create a Drizzle ORM instance
 const db = drizzle(process.env.POSTGRES_URL!)
@@ -67,19 +68,19 @@ export async function createAssistant(formData: FormData) {
         const suggestionsStr = formData.get("suggestions") as string
         const suggestions = suggestionsStr ? JSON.parse(suggestionsStr) : []
 
-        // Log the received data for debugging
-        console.log("Received form data:", {
-            userId,
-            name,
-            provider,
-            modelName,
-            systemPrompt,
-            temperature: temperatureStr,
-            maxTokens: maxTokensStr,
-            ragEnabled,
-            suggestions,
-            apiKey: "********", // Mask the API key in logs
-        })
+        // // Log the received data for debugging
+        // console.log("Received form data:", {
+        //     userId,
+        //     name,
+        //     provider,
+        //     modelName,
+        //     systemPrompt,
+        //     temperature: temperatureStr,
+        //     maxTokens: maxTokensStr,
+        //     ragEnabled,
+        //     suggestions,
+        //     apiKey: "********", // Mask the API key in logs
+        // })
 
         // Validate the data
         const validatedData = AssistantFormSchema.parse({
@@ -119,12 +120,14 @@ export async function createAssistant(formData: FormData) {
 
                     // Store just the filename in our array (we'll prepend the userId when retrieving)
                     fileNames.push(fileName)
+
+
                 }
             }
         }
 
-        // Insert data into the database with userId
-        await db.insert(assistantsTable).values({
+        // Insert data into the database with userId and RETURN the inserted record
+        const [assistant] = await db.insert(assistantsTable).values({
             name: validatedData.name,
             provider: validatedData.provider,
             modelName: validatedData.modelName,
@@ -134,9 +137,15 @@ export async function createAssistant(formData: FormData) {
             maxTokens: validatedData.maxTokens,
             ragEnabled: validatedData.ragEnabled === "yes",
             files: fileNames,
-            userId: userId, // Add the userId from the session
-            apiKey: validatedData.apiKey, // Store the API key
-        })
+            userId: userId,
+            apiKey: validatedData.apiKey,
+        }).returning();
+
+// Now you can access assistant.id
+        console.log("Created assistant with ID:", assistant.id);
+
+// Use the ID in your insertEmbedding function
+        await insertEmbedding(assistant.id, 'Some string that needs to be embedded');
 
         // Return success with redirect URL
         return {

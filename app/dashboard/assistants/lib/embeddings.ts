@@ -5,9 +5,38 @@ import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
 
 import {db} from "@/app/dashboard/assistants/lib/index";
 import {embeddings} from "@/lib/db/schema";
+import {getSelectedAssistant} from "@/app/dashboard/assistants/lib/actions2";
 
 
 const embeddingModel = openai.embedding('text-embedding-ada-002');
+
+
+
+export async function insertEmbedding(assistantId:string, content:string) {
+
+
+    try {
+        // Generate the embedding
+        const assistant = await getSelectedAssistant()
+
+        console.log(`Generating embedding for: "${content.substring(0, 30)}..."`);
+        const embeddingVector = await generateEmbedding(content);
+        console.log(`Generated embedding with ${embeddingVector.length} dimensions`);
+
+        // Insert into database using Drizzle
+        const result = await db.insert(embeddings).values({
+            assistantsTable:assistantId,
+            content,
+            embedding: embeddingVector
+        }).returning({ id: embeddings.id });
+
+        console.log(`Successfully inserted embedding with ID: ${result[0].id}`);
+        return result[0].id;
+    } catch (error) {
+        console.error('Error inserting embedding:', error);
+        throw error;
+    }
+}
 
 const generateChunks = (input: string): string[] => {
     return input
