@@ -22,9 +22,11 @@ export const embeddings = pgTable(
     'embeddings',
     {
       id: uuid('id').primaryKey().notNull().defaultRandom(),
-        assistantsTable: uuid('assistantId')
+        assistantId: uuid("assistantId")
             .notNull()
-            .references(() => assistantsTable.id),
+            .references(() => assistantsTable.id, {
+                onDelete: "cascade", // This is the key part for automatic cascading
+            }),
         content: text('content').notNull(),
         embedding: vector('embedding', { dimensions: 1536 }).notNull(),
     },

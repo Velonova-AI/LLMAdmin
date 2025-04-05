@@ -145,7 +145,7 @@ export async function createAssistant(formData: FormData) {
         console.log("Created assistant with ID:", assistant.id);
 
 // Use the ID in your insertEmbedding function
-        await insertEmbedding(assistant.id, 'Some string that needs to be embedded');
+       // await insertEmbedding(assistant.id, 'Some string that needs to be embedded');
 
         // Return success with redirect URL
         return {
