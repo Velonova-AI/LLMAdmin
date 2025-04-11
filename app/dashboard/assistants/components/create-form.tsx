@@ -198,12 +198,12 @@ export function CreateForm() {
                 })
             }
 
-            console.log("Submitting form with values:", values)
-            console.log("Suggestions:", suggestions)
-            console.log(
-                "Files:",
-                files.map((f) => f.name),
-            )
+            // console.log("Submitting form with values:", values)
+            // console.log("Suggestions:", suggestions)
+            // console.log(
+            //     "Files:",
+            //     files.map((f) => f.name),
+            // )
 
             // Submit the form using the server action
             const result = await createAssistant(formData)

@@ -1,4 +1,5 @@
-import { embed, embedMany } from 'ai';
+"use server"
+import {embed, embedMany, generateText} from 'ai';
 import { openai } from '@ai-sdk/openai';
 
 import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
@@ -6,9 +7,56 @@ import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
 import {db} from "@/app/dashboard/assistants/lib/index";
 import {embeddings} from "@/lib/db/schema";
 import {getSelectedAssistant} from "@/app/dashboard/assistants/lib/actions2";
+import {anthropic} from "@ai-sdk/anthropic";
+
+
+
+
+
+
+
+
+export async function extractPdfText(buffer: Buffer, fileName = "document.pdf"): Promise<string> {
+    try {
+        if (!buffer || buffer.length === 0) {
+            throw new Error("No valid buffer provided")
+        }
+
+        // Use AI SDK with Anthropic's Claude model to extract text from the PDF
+        const { text } = await generateText({
+            model: anthropic("claude-3-5-sonnet-20241022"),
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "text",
+                            text: "Extract all the text content from this PDF and format it properly. Preserve paragraphs, headings, and lists. Return only the extracted text without any additional commentary.",
+                        },
+                        {
+                            type: "file",
+                            data: buffer,
+                            mimeType: "application/pdf",
+                        },
+                    ],
+                },
+            ],
+        })
+
+        return text
+    } catch (error) {
+        console.error("Error extracting PDF text:", error)
+        throw new Error("Failed to extract text from PDF")
+    }
+}
+
+
 
 
 const embeddingModel = openai.embedding('text-embedding-ada-002');
+
+
+
 
 
 
@@ -17,7 +65,7 @@ export async function insertEmbedding(assistantId:string, content:string) {
 
     try {
         // Generate the embedding
-        const assistant = await getSelectedAssistant()
+        //const assistant = await getSelectedAssistant()
 
         console.log(`Generating embedding for: "${content.substring(0, 30)}..."`);
         const embeddingVector = await generateEmbedding(content);
@@ -25,7 +73,7 @@ export async function insertEmbedding(assistantId:string, content:string) {
 
         // Insert into database using Drizzle
         const result = await db.insert(embeddings).values({
-            assistantsTable:assistantId,
+            assistantId:assistantId,
             content,
             embedding: embeddingVector
         }).returning({ id: embeddings.id });

@@ -7,7 +7,7 @@ import { assistantsTable } from "@/lib/db/schema"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { auth } from "@/app/(auth)/auth"
 import { sql } from "drizzle-orm"
-import {insertEmbedding} from "@/app/dashboard/assistants/lib/embeddings";
+import {extractPdfText, insertEmbedding} from "@/app/dashboard/assistants/lib/embeddings";
 
 // Create a Drizzle ORM instance
 const db = drizzle(process.env.POSTGRES_URL!)
@@ -97,6 +97,7 @@ export async function createAssistant(formData: FormData) {
 
         // Handle file uploads if RAG is enabled
         const fileNames: string[] = []
+        const extractedTexts: { fileName: string; text: string }[] = []
 
         if (validatedData.ragEnabled === "yes") {
             // Create user-specific directory
@@ -114,6 +115,15 @@ export async function createAssistant(formData: FormData) {
                     // Convert file to ArrayBuffer and then to Buffer
                     const arrayBuffer = await file.arrayBuffer()
                     const buffer = Buffer.from(arrayBuffer)
+
+                    const extractedText = await extractPdfText(buffer, file.name)
+                    console.log(`Extracted text from ${fileName}:`, extractedText)
+
+                    // Store the extracted text with its filename
+                    extractedTexts.push({
+                        fileName: fileName,
+                        text: extractedText,
+                    })
 
                     // Write the file to disk
                     await writeFile(filePath, buffer)
@@ -145,7 +155,16 @@ export async function createAssistant(formData: FormData) {
         console.log("Created assistant with ID:", assistant.id);
 
 // Use the ID in your insertEmbedding function
-       // await insertEmbedding(assistant.id, 'Some string that needs to be embedded');
+
+        if (extractedTexts.length > 0) {
+            for (const { fileName, text } of extractedTexts) {
+                // Create chunks of text if it's too large
+
+                    await insertEmbedding(assistant.id, text)
+                }
+            }
+
+        //await insertEmbedding(assistant.id, 'Some string that needs to be embedded');
 
         // Return success with redirect URL
         return {
@@ -181,6 +200,42 @@ export async function createAssistant(formData: FormData) {
         }
     }
 }
+
+
+// Helper function to chunk text into smaller pieces
+function chunkText(text: string, maxChunkSize: number): string[] {
+    if (text.length <= maxChunkSize) {
+        return [text]
+    }
+
+    const chunks: string[] = []
+    let currentIndex = 0
+
+    while (currentIndex < text.length) {
+        // Find a good breaking point (end of paragraph or sentence)
+        let endIndex = Math.min(currentIndex + maxChunkSize, text.length)
+
+        if (endIndex < text.length) {
+            // Try to find paragraph break
+            const paragraphBreak = text.lastIndexOf("\n\n", endIndex)
+            if (paragraphBreak > currentIndex && paragraphBreak > endIndex - 200) {
+                endIndex = paragraphBreak
+            } else {
+                // Try to find sentence break
+                const sentenceBreak = text.lastIndexOf(". ", endIndex)
+                if (sentenceBreak > currentIndex && sentenceBreak > endIndex - 100) {
+                    endIndex = sentenceBreak + 1 // Include the period
+                }
+            }
+        }
+
+        chunks.push(text.substring(currentIndex, endIndex).trim())
+        currentIndex = endIndex
+    }
+
+    return chunks
+}
+
 
 // Data fetching functions
 export async function fetchFilteredAssistants(query: string, currentPage: number) {

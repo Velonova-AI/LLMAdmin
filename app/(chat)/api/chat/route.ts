@@ -28,136 +28,144 @@ import {Assistant} from "@/lib/db/schema";
 import {configureModel} from "@/app/dashboard/model-config";
 import {getInformation} from "@/lib/ai/tools/getInformation";
 
-
 export const maxDuration = 60;
+
+
+
+// Define the valid tool names as a type
+type ToolName = "getWeather" | "createDocument" | "updateDocument" | "requestSuggestions" | "getInformation"
 
 export async function POST(request: Request) {
   try {
+    const { id, messages, selectedChatModel }: { id: string; messages: Array<Message>; selectedChatModel: Assistant } =
+        await request.json()
+
+    const session = await auth()
+
+    if (!session || !session.user || !session.user.id) {
+      return new Response("Unauthorized", { status: 401 })
+    }
+
+    const userMessage = getMostRecentUserMessage(messages)
+
+    if (!userMessage) {
+      return new Response("No user message found", { status: 400 })
+    }
+
+    const chat = await getChatById({ id })
+
+    if (!chat) {
+      const title = await generateTitleFromUserMessage({ message: userMessage })
+      await saveChat({ id, userId: session.user.id, title })
+    }
+
+    await saveMessages({
+      messages: [{ ...userMessage, createdAt: new Date(), chatId: id }],
+    })
+
+    const assistant = selectedChatModel
+    const model = configureModel(assistant.provider, assistant.apiKey, assistant.modelName)
+
+    // Define the base tools that are always available with proper typing
+    const baseTools: ToolName[] = ["getWeather", "createDocument", "updateDocument", "requestSuggestions"]
+
+    // Add getInformation tool only if RAG is enabled
+    const activeTools: ToolName[] = assistant.ragEnabled ? [...baseTools, "getInformation"] : baseTools
 
 
-  const {
-    id,
-    messages,
-    selectedChatModel,
-  }: { id: string; messages: Array<Message>; selectedChatModel: Assistant } =
-    await request.json();
+    // Create a conditional system prompt based on whether RAG is enabled
+    let systemPrompt = assistant.systemPrompt || ""
 
-  const session = await auth();
+    if (assistant.ragEnabled) {
+      // Add instructions to use getInformation tool first when RAG is enabled
+      systemPrompt = `${systemPrompt}
 
+IMPORTANT: You have access to a knowledge base through the getInformation tool. When answering questions:
 
+1. FIRST use the getInformation tool to search the knowledge base for relevant information.
+2. If the information from the knowledge base is sufficient, use it to provide your answer.
+3. If the information from the knowledge base is incomplete or not available, then use your general knowledge or other tools.
+4. Always prioritize information from the knowledge base over your general knowledge when there are conflicts.
+5. When using information from the knowledge base, mention that the information comes from the user's documents.
 
+This ensures that your responses are accurate and tailored to the user's specific context.`
+    }
 
-  if (!session || !session.user || !session.user.id) {
-    return new Response('Unauthorized', { status: 401 });
-  }
+console.log(systemPrompt)
 
-  const userMessage = getMostRecentUserMessage(messages);
+    return createDataStreamResponse({
+      execute: (dataStream) => {
 
-  if (!userMessage) {
-    return new Response('No user message found', { status: 400 });
-  }
-
-  const chat = await getChatById({ id });
-
-  if (!chat) {
-    const title = await generateTitleFromUserMessage({ message: userMessage });
-    await saveChat({ id, userId: session.user.id, title });
-  }
-
-  await saveMessages({
-    messages: [{ ...userMessage, createdAt: new Date(), chatId: id }],
-  });
-
-    //2552bae6-8024-4064-a8f2-ba9daeac77a4
-    const assistant = selectedChatModel;
-
-
-
-      const model = configureModel(assistant.provider, assistant.apiKey, assistant.modelName);
-
-
-
-
-    //console.log(model)
-  return createDataStreamResponse({
-    execute: (dataStream) => {
-      const result = streamText({
-
-        model:model,
-        system:assistant.systemPrompt || undefined,
-
-        messages,
-        maxSteps: 5,
-        experimental_activeTools:
-
-             [
-                'getWeather',
-                'createDocument',
-                'updateDocument',
-                'requestSuggestions',
-               'getInformation',
-              ],
-        experimental_transform: smoothStream({ chunking: 'word' }),
-        experimental_generateMessageId: generateUUID,
-        tools: {
+        const toolsObject: Record<string, any> = {
           getWeather,
-          getInformation,
           createDocument: createDocument({ session, dataStream }),
           updateDocument: updateDocument({ session, dataStream }),
           requestSuggestions: requestSuggestions({
             session,
             dataStream,
           }),
-        },
-        onFinish: async ({ response, reasoning }) => {
-          if (session.user?.id) {
-            try {
-              const sanitizedResponseMessages = sanitizeResponseMessages({
-                messages: response.messages,
-                reasoning,
-              });
+        }
 
-              await saveMessages({
-                messages: sanitizedResponseMessages.map((message) => {
-                  return {
-                    id: message.id,
-                    chatId: id,
-                    role: message.role,
-                    content: message.content,
-                    createdAt: new Date(),
-                  };
-                }),
-              });
-            } catch (error) {
-              console.error('Failed to save chat');
+        // Add getInformation to tools object only if RAG is enabled
+        if (assistant.ragEnabled) {
+          toolsObject.getInformation = getInformation
+        }
+        const result = streamText({
+          model: model,
+          system: systemPrompt ,
+          messages,
+          maxSteps: 5,
+          experimental_activeTools: activeTools,
+          experimental_transform: smoothStream({ chunking: "word" }),
+          experimental_generateMessageId: generateUUID,
+          tools: toolsObject,
+          onFinish: async ({ response, reasoning }) => {
+            if (session.user?.id) {
+              try {
+                const sanitizedResponseMessages = sanitizeResponseMessages({
+                  messages: response.messages,
+                  reasoning,
+                })
+
+                await saveMessages({
+                  messages: sanitizedResponseMessages.map((message) => {
+                    return {
+                      id: message.id,
+                      chatId: id,
+                      role: message.role,
+                      content: message.content,
+                      createdAt: new Date(),
+                    }
+                  }),
+                })
+              } catch (error) {
+                console.error("Failed to save chat")
+              }
             }
-          }
-        },
-        experimental_telemetry: {
-          isEnabled: true,
-          functionId: 'stream-text',
-        },
-        temperature: assistant.temperature || undefined,
-        maxTokens: assistant.maxTokens || undefined,
-      });
+          },
+          experimental_telemetry: {
+            isEnabled: true,
+            functionId: "stream-text",
+          },
+          temperature: assistant.temperature || undefined,
+          maxTokens: assistant.maxTokens || undefined,
+        })
 
-      result.mergeIntoDataStream(dataStream, {
-        sendReasoning: true,
-      });
-    },
-    onError: (error) => {
-
-      console.error('Error in data stream:', error);
-      return 'Oops, an error occured!';
-    },
-  });
-
+        result.mergeIntoDataStream(dataStream, {
+          sendReasoning: true,
+        })
+      },
+      onError: (error) => {
+        console.error("Error in data stream:", error)
+        return "Oops, an error occurred!"
+      },
+    })
   } catch (error) {
-    console.error('Error in POST function:', error);
-    return new Response('Internal Server Error', { status: 500 });
+    console.error("Error in POST function:", error)
+    return new Response("Internal Server Error", { status: 500 })
   }
-
 }
+
 
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
