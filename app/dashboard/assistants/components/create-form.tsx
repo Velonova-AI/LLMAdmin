@@ -39,7 +39,7 @@ const assistantPresets = {
     legal: {
         name: "Legal Policy Generator",
         provider: "anthropic",
-        modelName: "claude-3-opus",
+        modelName: "claude-3-7-sonnet-latest",
         systemPrompt:
             "You are a legal document specialist. Generate clear, comprehensive legal policies such as terms of service, privacy policies, and user agreements that protect businesses while remaining accessible to users.",
         suggestions: [
@@ -377,11 +377,11 @@ export function CreateForm() {
                                     </FormControl>
                                     <SelectContent>
                                         <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                                        <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
-                                        <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
+                                        <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+                                        <SelectItem value="claude-3-5-haiku-latest">claude-3-5-haiku-latest</SelectItem>
+                                        <SelectItem value="claude-3-7-sonnet-latest">claude-3-7-sonnet-latest</SelectItem>
                                         <SelectItem value="mistral-large">Mistral Large</SelectItem>
-                                        <SelectItem value="command-r">Command R</SelectItem>
+                                        <SelectItem value="claude-3-5-sonnet-latest">claude-3-5-sonnet-latest</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormDescription>The model to use for your assistant.</FormDescription>
