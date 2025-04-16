@@ -8,6 +8,7 @@ import { drizzle } from "drizzle-orm/node-postgres"
 import { auth } from "@/app/(auth)/auth"
 import { sql } from "drizzle-orm"
 import {extractPdfText, insertEmbedding} from "@/app/dashboard/assistants/lib/embeddings";
+import {put} from "@vercel/blob";
 
 // Create a Drizzle ORM instance
 const db = drizzle(process.env.POSTGRES_URL!)
@@ -96,12 +97,14 @@ export async function createAssistant(formData: FormData) {
         })
 
         // Handle file uploads if RAG is enabled
-        const fileNames: string[] = []
+        // const fileNames: string[] = []
+
+        const blobUrls: string[] = []
         const extractedTexts: { fileName: string; text: string }[] = []
 
         if (validatedData.ragEnabled === "yes") {
             // Create user-specific directory
-            const userDir = await ensureUserFilesDirectory(userId)
+            //const userDir = await ensureUserFilesDirectory(userId)
 
             // Get files from the FormData
             const filesInput = formData.getAll("files") as File[]
@@ -110,14 +113,14 @@ export async function createAssistant(formData: FormData) {
                 if (file instanceof File && file.size > 0) {
                     // Generate a unique filename
                     const fileName = `${uuidv4()}-${file.name}`
-                    const filePath = path.join(userDir, fileName)
+                    //const filePath = path.join(userDir, fileName)
 
                     // Convert file to ArrayBuffer and then to Buffer
                     const arrayBuffer = await file.arrayBuffer()
                     const buffer = Buffer.from(arrayBuffer)
 
                     const extractedText = await extractPdfText(buffer, file.name)
-                    console.log(`Extracted text from ${fileName}:`, extractedText)
+                    //console.log(`Extracted text from ${fileName}:`, extractedText)
 
                     // Store the extracted text with its filename
                     extractedTexts.push({
@@ -125,11 +128,20 @@ export async function createAssistant(formData: FormData) {
                         text: extractedText,
                     })
 
-                    // Write the file to disk
-                    await writeFile(filePath, buffer)
+                    // Upload file to Vercel Blob Storage
+                    const blob = await put(fileName, file, {
+                        access: "public",
+                        addRandomSuffix: false, // We already added a UUID
+                    })
 
-                    // Store just the filename in our array (we'll prepend the userId when retrieving)
-                    fileNames.push(fileName)
+                    // Store the blob URL
+                    blobUrls.push(blob.url)
+
+                    // // Write the file to disk
+                    // await writeFile(filePath, buffer)
+                    //
+                    // // Store just the filename in our array (we'll prepend the userId when retrieving)
+                    // fileNames.push(fileName)
 
 
                 }
@@ -146,7 +158,7 @@ export async function createAssistant(formData: FormData) {
             temperature: validatedData.temperature,
             maxTokens: validatedData.maxTokens,
             ragEnabled: validatedData.ragEnabled === "yes",
-            files: fileNames,
+            files: blobUrls,
             userId: userId,
             apiKey: validatedData.apiKey,
         }).returning();

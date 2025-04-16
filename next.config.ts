@@ -1,8 +1,10 @@
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   experimental: {
     ppr: true,
+    serverActions: {
+      bodySizeLimit: '15mb',
+    },
   },
   images: {
     remotePatterns: [
@@ -11,14 +13,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-};
+}
 
-
-// module.exports = {
-//   experimental: {
-//     serverActions: {
-//       bodySizeLimit: '2mb',
-//     },
-//   },
-// }
-export default nextConfig;
+export default nextConfig

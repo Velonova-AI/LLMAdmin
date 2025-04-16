@@ -101,10 +101,10 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-// Maximum file size in bytes (3MB)
-const MAX_FILE_SIZE = 3 * 1024 * 1024
+// Maximum file size in bytes (10MB)
+const MAX_FILE_SIZE = 10 * 1024 * 1024
 // Maximum total size of all files combined
-const MAX_TOTAL_SIZE = 3.5 * 1024 * 1024
+const MAX_TOTAL_SIZE = 15 * 1024 * 1024
 
 export function CreateForm() {
     const router = useRouter()
@@ -564,7 +564,7 @@ export function CreateForm() {
                                 )}
 
                                 <div className="text-sm text-muted-foreground mb-2">
-                                    Maximum file size: 3MB. Total upload limit: 3.5MB.
+                                    Maximum file size: 10MB. Total upload limit: 15MB.
                                 </div>
 
                                 <Input id="file-upload" type="file" multiple onChange={handleFileChange} />
