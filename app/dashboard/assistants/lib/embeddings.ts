@@ -16,39 +16,6 @@ import {anthropic} from "@ai-sdk/anthropic";
 
 
 
-export async function extractPdfText(buffer: Buffer, fileName = "document.pdf"): Promise<string> {
-    try {
-        if (!buffer || buffer.length === 0) {
-            throw new Error("No valid buffer provided")
-        }
-
-        // Use AI SDK with Anthropic's Claude model to extract text from the PDF
-        const { text } = await generateText({
-            model: anthropic("claude-3-5-sonnet-20241022"),
-            messages: [
-                {
-                    role: "user",
-                    content: [
-                        {
-                            type: "text",
-                            text: "Extract all the text content from this PDF and format it properly. Preserve paragraphs, headings, and lists. Return only the extracted text without any additional commentary.",
-                        },
-                        {
-                            type: "file",
-                            data: buffer,
-                            mimeType: "application/pdf",
-                        },
-                    ],
-                },
-            ],
-        })
-
-        return text
-    } catch (error) {
-        console.error("Error extracting PDF text:", error)
-        throw new Error("Failed to extract text from PDF")
-    }
-}
 
 
 

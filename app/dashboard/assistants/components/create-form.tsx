@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef  } from "react"
+import { useState, useRef } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Trash2, Plus, AlertCircle, Eye, EyeOff } from "lucide-react"
+import { Trash2, Plus, AlertCircle, Eye, EyeOff, FileSpreadsheet } from 'lucide-react'
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -16,8 +16,9 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { createAssistant } from "@/app/dashboard/assistants/lib/actions"
-import {useForm} from "react-hook-form";
+import { useForm } from "react-hook-form"
 
 // Preset configurations for each assistant type
 const assistantPresets = {
@@ -103,14 +104,12 @@ type FormValues = z.infer<typeof formSchema>
 
 // Maximum file size in bytes (10MB)
 const MAX_FILE_SIZE = 10 * 1024 * 1024
-// Maximum total size of all files combined
-const MAX_TOTAL_SIZE = 15 * 1024 * 1024
 
 export function CreateForm() {
     const router = useRouter()
     const [suggestions, setSuggestions] = useState<string[]>([])
     const [newSuggestion, setNewSuggestion] = useState("")
-    const [files, setFiles] = useState<File[]>([])
+    const [csvFile, setCsvFile] = useState<File | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [selectedPreset, setSelectedPreset] = useState<string>("custom")
     const [fileError, setFileError] = useState<string | null>(null)
@@ -151,23 +150,30 @@ export function CreateForm() {
         setSuggestions([...preset.suggestions])
     }
 
-    // Calculate total size of all files
-    const calculateTotalFileSize = (fileList: File[]): number => {
-        return fileList.reduce((total, file) => total + file.size, 0)
+    // Validate CSV file
+    const validateCsvFile = (file: File): boolean => {
+        // Check file extension
+        if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv') {
+            setFileError("Only CSV files are supported")
+            return false
+        }
+
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+            setFileError(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds the limit of ${(MAX_FILE_SIZE / (1024 * 1024)).toFixed(2)}MB`)
+            return false
+        }
+
+        return true
     }
 
     async function onSubmit(values: FormValues) {
         if (!formRef.current) return
 
-        // Check total file size before submission
-        if (ragEnabled && files.length > 0) {
-            const totalSize = calculateTotalFileSize(files)
-            if (totalSize > MAX_TOTAL_SIZE) {
-                setFileError(
-                    `Total file size (${(totalSize / (1024 * 1024)).toFixed(2)}MB) exceeds the limit of ${(MAX_TOTAL_SIZE / (1024 * 1024)).toFixed(2)}MB.`,
-                )
-                return
-            }
+        // Check if RAG is enabled but no CSV file is provided
+        if (ragEnabled && !csvFile) {
+            setFileError("Please upload a CSV file")
+            return
         }
 
         setIsSubmitting(true)
@@ -191,19 +197,10 @@ export function CreateForm() {
             // Add the suggestions as JSON
             formData.append("suggestions", JSON.stringify(suggestions))
 
-            // Add files if RAG is enabled
-            if (ragEnabled && files.length > 0) {
-                files.forEach((file) => {
-                    formData.append("files", file)
-                })
+            // Add CSV file if RAG is enabled
+            if (ragEnabled && csvFile) {
+                formData.append("file", csvFile)
             }
-
-            // console.log("Submitting form with values:", values)
-            // console.log("Suggestions:", suggestions)
-            // console.log(
-            //     "Files:",
-            //     files.map((f) => f.name),
-            // )
 
             // Submit the form using the server action
             const result = await createAssistant(formData)
@@ -224,7 +221,7 @@ export function CreateForm() {
             // Reset the form
             form.reset()
             setSuggestions([])
-            setFiles([])
+            setCsvFile(null)
         } catch (error: any) {
             // If this is a redirect error from Next.js, don't show an alert
             if (error?.digest?.includes("NEXT_REDIRECT")) {
@@ -237,7 +234,7 @@ export function CreateForm() {
             // Check if it's a file size error
             if (error.message && error.message.includes("Body exceeded")) {
                 setFileError(
-                    "File upload failed: The total size of all files exceeds the server limit. Please reduce the file size or number of files.",
+                    "File upload failed: The file size exceeds the server limit. Please reduce the file size."
                 )
             } else {
                 setErrorMessage("An error occurred while creating the assistant. Please try again.")
@@ -259,41 +256,31 @@ export function CreateForm() {
     }
 
     function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-        if (e.target.files) {
-            setFileError(null)
-            const newFiles = Array.from(e.target.files)
+        setFileError(null)
 
-            // Check individual file sizes
-            const oversizedFiles = newFiles.filter((file) => file.size > MAX_FILE_SIZE)
-            if (oversizedFiles.length > 0) {
-                setFileError(
-                    `Some files exceed the maximum size of ${MAX_FILE_SIZE / (1024 * 1024)}MB: ${oversizedFiles.map((f) => f.name).join(", ")}`,
-                )
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0]
+
+            if (validateCsvFile(file)) {
+                setCsvFile(file)
+            } else {
+                // Clear the file input
                 e.target.value = ""
-                return
             }
-
-            // Check total size including existing files
-            const potentialNewFiles = [...files, ...newFiles]
-            const totalSize = calculateTotalFileSize(potentialNewFiles)
-            if (totalSize > MAX_TOTAL_SIZE) {
-                setFileError(
-                    `Total file size would exceed ${(MAX_TOTAL_SIZE / (1024 * 1024)).toFixed(2)}MB. Please remove some files first.`,
-                )
-                e.target.value = ""
-                return
-            }
-
-            // Add new files to existing files
-            setFiles(potentialNewFiles)
+        } else {
+            setCsvFile(null)
         }
-        // Reset the input value so the same file can be selected again if needed
-        e.target.value = ""
     }
 
-    function removeFile(indexToRemove: number) {
-        setFiles(files.filter((_, index) => index !== indexToRemove))
+    function removeFile() {
+        setCsvFile(null)
         setFileError(null)
+
+        // Clear the file input if it exists
+        const fileInput = document.getElementById('csv-upload') as HTMLInputElement
+        if (fileInput) {
+            fileInput.value = ""
+        }
     }
 
     return (
@@ -523,7 +510,13 @@ export function CreateForm() {
                             <FormLabel>Enable RAG (Retrieval Augmented Generation)</FormLabel>
                             <FormControl>
                                 <RadioGroup
-                                    onValueChange={field.onChange}
+                                    onValueChange={(value) => {
+                                        field.onChange(value)
+                                        // Clear file error when disabling RAG
+                                        if (value === "no") {
+                                            setFileError(null)
+                                        }
+                                    }}
                                     defaultValue={field.value}
                                     className="flex flex-row space-x-4"
                                 >
@@ -541,7 +534,7 @@ export function CreateForm() {
                                     </FormItem>
                                 </RadioGroup>
                             </FormControl>
-                            <FormDescription>Allow the assistant to retrieve information from uploaded files.</FormDescription>
+                            <FormDescription>Allow the assistant to retrieve information from a CSV file.</FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -552,9 +545,9 @@ export function CreateForm() {
                         <CardContent className="pt-6">
                             <div className="space-y-4">
                                 <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                    Upload Files
+                                    Upload CSV File
                                 </div>
-                                <p className="text-sm text-muted-foreground">Upload documents for your assistant to reference.</p>
+                                <p className="text-sm text-muted-foreground">Upload a CSV file for your assistant to reference.</p>
 
                                 {fileError && (
                                     <Alert variant="destructive" className="mb-4">
@@ -564,35 +557,39 @@ export function CreateForm() {
                                 )}
 
                                 <div className="text-sm text-muted-foreground mb-2">
-                                    Maximum file size: 10MB. Total upload limit: 15MB.
+                                    Maximum file size: {(MAX_FILE_SIZE / (1024 * 1024)).toFixed(2)}MB. Only CSV files are supported.
                                 </div>
 
-                                <Input id="file-upload" type="file" multiple onChange={handleFileChange} />
+                                <Input
+                                    id="csv-upload"
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    accept=".csv,text/csv"
+                                />
 
-                                {files.length > 0 && (
-                                    <div className="mt-4">
-                                        <p className="text-sm font-medium mb-2">Selected files:</p>
-                                        <ul className="space-y-2">
-                                            {files.map((file, index) => (
-                                                <li key={index} className="flex items-center justify-between bg-muted p-2 rounded-md">
-                          <span className="text-sm text-muted-foreground truncate max-w-[250px]">
-                            {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                          </span>
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => removeFile(index)}
-                                                        className="size-8 p-0"
-                                                    >
-                                                        <Trash2 className="size-4 text-destructive" />
-                                                        <span className="sr-only">Remove file</span>
-                                                    </Button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                        <div className="mt-2 text-sm text-muted-foreground">
-                                            Total size: {(calculateTotalFileSize(files) / (1024 * 1024)).toFixed(2)}MB
+                                {csvFile && (
+                                    <div className="mt-4 bg-muted p-3 rounded-md">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-2">
+                                                <FileSpreadsheet className="size-5" />
+                                                <div>
+                                                    <p className="text-sm font-medium">{csvFile.name}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {(csvFile.size / 1024).toFixed(1)} KB
+                                                    </p>
+                                                </div>
+                                                <Badge variant="outline" className="ml-2">CSV</Badge>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={removeFile}
+                                                className="size-8 p-0"
+                                            >
+                                                <Trash2 className="size-4 text-destructive" />
+                                                <span className="sr-only">Remove file</span>
+                                            </Button>
                                         </div>
                                     </div>
                                 )}
@@ -601,11 +598,10 @@ export function CreateForm() {
                     </Card>
                 )}
 
-                <Button type="submit" className="w-full" disabled={isSubmitting || !!fileError}>
+                <Button type="submit" className="w-full" disabled={isSubmitting || !!fileError || (ragEnabled && !csvFile)}>
                     {isSubmitting ? "Creating..." : "Create Assistant"}
                 </Button>
             </form>
         </Form>
     )
 }
-

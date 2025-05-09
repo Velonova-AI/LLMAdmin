@@ -7,8 +7,10 @@ import { assistantsTable } from "@/lib/db/schema"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { auth } from "@/app/(auth)/auth"
 import { sql } from "drizzle-orm"
-import {extractPdfText, insertEmbedding} from "@/app/dashboard/assistants/lib/embeddings";
+import { insertEmbedding} from "@/app/dashboard/assistants/lib/embeddings";
 import {put} from "@vercel/blob";
+import { parse as csvParse } from "csv-parse/sync"
+
 
 // Create a Drizzle ORM instance
 const db = drizzle(process.env.POSTGRES_URL!)
@@ -41,6 +43,46 @@ const AssistantFormSchema = z.object({
     apiKey: z.string().min(1, "API key is required"),
 })
 
+
+
+
+
+
+// CSV validation function
+function validateCsvStructure(csvContent: string): { isValid: boolean; message?: string } {
+    try {
+        // Try to parse the CSV
+        const records = csvParse(csvContent, {
+            columns: true,
+            skip_empty_lines: true
+        })
+
+        // Check if we have any records
+        if (records.length === 0) {
+            return { isValid: false, message: "CSV file is empty or has no data rows" }
+        }
+
+        // Check if we have at least one column
+        if (Object.keys(records[0]).length === 0) {
+            return { isValid: false, message: "CSV file has no columns" }
+        }
+
+        return { isValid: true }
+    } catch (error) {
+        return {
+            isValid: false,
+            message: `Invalid CSV format: ${error instanceof Error ? error.message : 'Unknown error'}`
+        }
+    }
+}
+
+// Format a CSV row as text for embedding
+function formatRowAsText(row: Record<string, any>): string {
+    return Object.entries(row)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(', ');
+}
+
 export async function createAssistant(formData: FormData) {
     try {
         // Get the user session
@@ -69,20 +111,6 @@ export async function createAssistant(formData: FormData) {
         const suggestionsStr = formData.get("suggestions") as string
         const suggestions = suggestionsStr ? JSON.parse(suggestionsStr) : []
 
-        // // Log the received data for debugging
-        // console.log("Received form data:", {
-        //     userId,
-        //     name,
-        //     provider,
-        //     modelName,
-        //     systemPrompt,
-        //     temperature: temperatureStr,
-        //     maxTokens: maxTokensStr,
-        //     ragEnabled,
-        //     suggestions,
-        //     apiKey: "********", // Mask the API key in logs
-        // })
-
         // Validate the data
         const validatedData = AssistantFormSchema.parse({
             name,
@@ -96,54 +124,47 @@ export async function createAssistant(formData: FormData) {
             apiKey,
         })
 
-        // Handle file uploads if RAG is enabled
-        // const fileNames: string[] = []
-
-        const blobUrls: string[] = []
-        const extractedTexts: { fileName: string; text: string }[] = []
+        let fileName = ""
+        let csvContent = ""
 
         if (validatedData.ragEnabled === "yes") {
-            // Create user-specific directory
-            //const userDir = await ensureUserFilesDirectory(userId)
+            // Get the single file from FormData
+            const file = formData.get("file") as File
 
-            // Get files from the FormData
-            const filesInput = formData.getAll("files") as File[]
+            if (!file || !(file instanceof File) || file.size === 0) {
+                return {
+                    success: false,
+                    message: "No CSV file provided or file is empty",
+                    redirect: undefined,
+                }
+            }
 
-            for (const file of filesInput) {
-                if (file instanceof File && file.size > 0) {
-                    // Generate a unique filename
-                    const fileName = `${uuidv4()}-${file.name}`
-                    //const filePath = path.join(userDir, fileName)
+            // Validate file type
+            if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv') {
+                return {
+                    success: false,
+                    message: "Only CSV files are supported",
+                    redirect: undefined,
+                }
+            }
 
-                    // Convert file to ArrayBuffer and then to Buffer
-                    const arrayBuffer = await file.arrayBuffer()
-                    const buffer = Buffer.from(arrayBuffer)
+            // Generate a unique filename (for reference only, not storing the file)
+            fileName = `${uuidv4()}-${file.name}`
 
-                    const extractedText = await extractPdfText(buffer, file.name)
-                    //console.log(`Extracted text from ${fileName}:`, extractedText)
+            // Convert file to ArrayBuffer and then to Buffer
+            const arrayBuffer = await file.arrayBuffer()
+            const buffer = Buffer.from(arrayBuffer)
 
-                    // Store the extracted text with its filename
-                    extractedTexts.push({
-                        fileName: fileName,
-                        text: extractedText,
-                    })
+            // Get CSV content as string
+            csvContent = buffer.toString('utf-8')
 
-                    // Upload file to Vercel Blob Storage
-                    const blob = await put(fileName, file, {
-                        access: "public",
-                        addRandomSuffix: false, // We already added a UUID
-                    })
-
-                    // Store the blob URL
-                    blobUrls.push(blob.url)
-
-                    // // Write the file to disk
-                    // await writeFile(filePath, buffer)
-                    //
-                    // // Store just the filename in our array (we'll prepend the userId when retrieving)
-                    // fileNames.push(fileName)
-
-
+            // Validate CSV structure
+            const validation = validateCsvStructure(csvContent)
+            if (!validation.isValid) {
+                return {
+                    success: false,
+                    message: validation.message || "Invalid CSV format",
+                    redirect: undefined,
                 }
             }
         }
@@ -158,25 +179,38 @@ export async function createAssistant(formData: FormData) {
             temperature: validatedData.temperature,
             maxTokens: validatedData.maxTokens,
             ragEnabled: validatedData.ragEnabled === "yes",
-            files: blobUrls,
+            files: [], // No files stored, just using the content for embeddings
             userId: userId,
             apiKey: validatedData.apiKey,
         }).returning();
 
-// Now you can access assistant.id
         console.log("Created assistant with ID:", assistant.id);
 
-// Use the ID in your insertEmbedding function
+        // Process CSV content and create embeddings row by row
+        if (csvContent && assistant.id) {
+            try {
+                // Parse the CSV
+                const records = csvParse(csvContent, {
+                    columns: true,
+                    skip_empty_lines: true
+                });
 
-        if (extractedTexts.length > 0) {
-            for (const { fileName, text } of extractedTexts) {
-                // Create chunks of text if it's too large
+                // Process each row individually for embeddings
+                for (const record of records) {
+                    // Format the row as text
+                    const rowText = formatRowAsText(record);
 
-                    await insertEmbedding(assistant.id, text)
+                    // Create embedding for this individual row
+                    await insertEmbedding(assistant.id, rowText);
                 }
-            }
 
-        //await insertEmbedding(assistant.id, 'Some string that needs to be embedded');
+                console.log(`Processed ${records.length} rows from CSV for embeddings`);
+            } catch (error) {
+                console.error("Error processing CSV for embeddings:", error);
+                // Continue with the function even if embedding fails
+                // We've already created the assistant
+            }
+        }
 
         // Return success with redirect URL
         return {
@@ -212,41 +246,7 @@ export async function createAssistant(formData: FormData) {
         }
     }
 }
-
-
 // Helper function to chunk text into smaller pieces
-function chunkText(text: string, maxChunkSize: number): string[] {
-    if (text.length <= maxChunkSize) {
-        return [text]
-    }
-
-    const chunks: string[] = []
-    let currentIndex = 0
-
-    while (currentIndex < text.length) {
-        // Find a good breaking point (end of paragraph or sentence)
-        let endIndex = Math.min(currentIndex + maxChunkSize, text.length)
-
-        if (endIndex < text.length) {
-            // Try to find paragraph break
-            const paragraphBreak = text.lastIndexOf("\n\n", endIndex)
-            if (paragraphBreak > currentIndex && paragraphBreak > endIndex - 200) {
-                endIndex = paragraphBreak
-            } else {
-                // Try to find sentence break
-                const sentenceBreak = text.lastIndexOf(". ", endIndex)
-                if (sentenceBreak > currentIndex && sentenceBreak > endIndex - 100) {
-                    endIndex = sentenceBreak + 1 // Include the period
-                }
-            }
-        }
-
-        chunks.push(text.substring(currentIndex, endIndex).trim())
-        currentIndex = endIndex
-    }
-
-    return chunks
-}
 
 
 // Data fetching functions
