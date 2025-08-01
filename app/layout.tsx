@@ -10,9 +10,9 @@ import Footer from "@/app/footer";
 import {Analytics} from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://neurosecure.ai'),
-  title: 'Neurosecure.ai Security First',
-  description: 'Productivity assistants for your business',
+  metadataBase: new URL('https://velonova.ai'),
+  title: "Velonova.ai - Europe's first AI Agent Marketplace",
+  description: "Europe's first AI Agent Marketplace",
 };
 
 export const viewport = {
