@@ -1,4 +1,4 @@
-<a href="https://neurosecure.ai">
+<a href="https://velonova.ai">
   <img alt="Next.js 14 and App Router-ready AI chatbot." src="app/(chat)/opengraph-image.png">
   <h1 align="center">Neurosecure Admin and Billing dashboard for  AI Chatbot</h1>
 </a>
@@ -17,7 +17,7 @@
 
 ## Features
 
-- [Neurosecure.ai](https://neurosecure.ai) Admin dashboard 
+- [Velonova.ai](https://velonova.ai) Admin dashboard 
 - [Next.js](https://nextjs.org 15) App Router
   - Advanced routing for seamless navigation and performance
   - React Server Components (RSCs) and Server Actions for server-side rendering and increased performance

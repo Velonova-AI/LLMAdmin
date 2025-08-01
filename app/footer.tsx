@@ -6,8 +6,8 @@ export default function Footer() {
       <div className="container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <Link href="https://www.neurosecure.ai/" className="text-xl font-bold">
-              NeuroSecure.ai
+            <Link href="https://www.velonova.ai/" className="text-xl font-bold">
+              Velonova.ai
             </Link>
             <p className="text-sm text-muted-foreground">
               Privacy-first AI assistants for startups and small businesses.
@@ -24,7 +24,7 @@ export default function Footer() {
            
               <li>
                 <Link
-                  href="https://beta.neurosecure.ai/login"
+                  href="https://beta.velonova.ai/login"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Documentation
@@ -33,14 +33,14 @@ export default function Footer() {
 
               <li>
                 <Link
-                    href="https://beta.neurosecure.ai/contact"
+                    href="https://beta.velonova.ai/contact"
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Contact us
                 </Link>
               </li>
               <li>
-                <Link href="https://beta.neurosecure.ai/research" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="https://beta.velonova.ai/research" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Research
                 </Link>
               </li>
@@ -52,23 +52,23 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">Company</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="https://www.neurosecure.ai/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="https://www.velonova.ai/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   About
                 </Link>
               </li>
              
               <li>
-                <Link href="https://www.neurosecure.ai/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="https://www.velonova.ai/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Terms
                 </Link>
               </li>
               <li>
-                <Link href="https://www.neurosecure.ai/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="https://www.velonova.ai/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Privacy
                 </Link>
               </li>
               <li>
-                <Link href="https://www.neurosecure.ai/refund" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="https://www.velonova.ai/refund" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Refund
                 </Link>
               </li>

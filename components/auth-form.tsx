@@ -86,16 +86,16 @@ export function AuthForm({
         <Checkbox id="consent" name="consent" required className="mt-1" />
         <Label htmlFor="consent" className="text-sm text-zinc-600 font-normal dark:text-zinc-400 leading-tight">
           I agree to the{" "}
-          <Link href="https://www.neurosecure.ai/terms" className="text-primary font-bold underline " target="_blank">
+          <Link href="https://www.velonova.ai/terms" className="text-primary font-bold underline " target="_blank">
             Terms and Conditions
           </Link>{" "}
           and{" "}
-          <Link href="https://www.neurosecure.ai/privacy" className="text-primary font-bold underline " target="_blank">
+          <Link href="https://www.velonova.ai/privacy" className="text-primary font-bold underline " target="_blank">
             Privacy Policy
           </Link>
           {" "}
           and{" "}
-          <Link href="https://www.neurosecure.ai/refund" className="text-primary font-bold underline " target="_blank">
+          <Link href="https://www.velonova.ai/refund" className="text-primary font-bold underline " target="_blank">
             Refund Policy
           </Link>
         </Label>
