@@ -378,3 +378,86 @@ export async function deleteAssistant(id: string, name: string) {
     }
 }
 
+export async function updateAssistant(id: string, formData: FormData) {
+    try {
+        // Get the user session
+        const session = await auth()
+        if (!session || !session.user || !session.user.id) {
+            return {
+                success: false,
+                message: "Authentication required",
+                redirect: "/login",
+            }
+        }
+
+        const userId = session.user.id
+
+        // Extract form fields
+        const name = formData.get("name") as string
+        const provider = formData.get("provider") as string
+        const modelName = formData.get("modelName") as string
+        const systemPrompt = formData.get("systemPrompt") as string
+        const temperatureStr = formData.get("temperature") as string
+        const maxTokensStr = formData.get("maxTokens") as string
+        const ragEnabled = formData.get("ragEnabled") as string
+        const apiKey = formData.get("apiKey") as string
+
+        // Parse suggestions from JSON string
+        const suggestionsStr = formData.get("suggestions") as string
+        const suggestions = suggestionsStr ? JSON.parse(suggestionsStr) : []
+
+        // Validate the data
+        const validatedData = AssistantFormSchema.parse({
+            name,
+            provider,
+            modelName,
+            systemPrompt,
+            suggestions,
+            temperature: temperatureStr,
+            maxTokens: maxTokensStr,
+            ragEnabled,
+            apiKey,
+        })
+
+        // Verify the assistant belongs to the user before updating
+        const existingAssistant = await db.select().from(assistantsTable).where(sql`id = ${id} AND "userId" = ${userId}`)
+
+        if (existingAssistant.length === 0) {
+            return {
+                success: false,
+                message: "Assistant not found or unauthorized",
+                redirect: undefined,
+            }
+        }
+
+        // Update the assistant in the database
+        await db.update(assistantsTable)
+            .set({
+                name: validatedData.name,
+                provider: validatedData.provider,
+                modelName: validatedData.modelName,
+                systemPrompt: validatedData.systemPrompt,
+                suggestions: validatedData.suggestions,
+                temperature: validatedData.temperature,
+                maxTokens: validatedData.maxTokens,
+                ragEnabled: validatedData.ragEnabled === "yes",
+                apiKey: validatedData.apiKey,
+            })
+            .where(sql`id = ${id} AND "userId" = ${userId}`)
+
+        // Return success with redirect URL
+        return {
+            success: true,
+            message: "Assistant updated successfully",
+            redirect: `/dashboard/assistants?message=${encodeURIComponent(`Assistant ${validatedData.name} was successfully updated`)}`,
+        }
+    } catch (error) {
+        console.error("Database Error:", error)
+        return {
+            success: false,
+            message: "Failed to update assistant. Please try again.",
+            redirect: undefined,
+        }
+    }
+}
+

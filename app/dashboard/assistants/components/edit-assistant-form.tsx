@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef  } from "react"
+import { useState, useRef, useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Trash2, Plus, AlertCircle, Eye, EyeOff } from "lucide-react"
@@ -16,8 +16,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { createAssistant } from "@/app/dashboard/assistants/lib/actions"
-import {useForm} from "react-hook-form";
+import { updateAssistant, fetchAssistantById } from "@/app/dashboard/assistants/lib/actions"
+import { useForm } from "react-hook-form"
 
 // Preset configurations for each assistant type
 const assistantPresets = {
@@ -106,7 +106,11 @@ const MAX_FILE_SIZE = 3 * 1024 * 1024
 // Maximum total size of all files combined
 const MAX_TOTAL_SIZE = 3.5 * 1024 * 1024
 
-export function CreateForm() {
+interface EditFormProps {
+    assistantId: string
+}
+
+export function EditForm({ assistantId }: EditFormProps) {
     const router = useRouter()
     const [suggestions, setSuggestions] = useState<string[]>([])
     const [newSuggestion, setNewSuggestion] = useState("")
@@ -116,6 +120,7 @@ export function CreateForm() {
     const [fileError, setFileError] = useState<string | null>(null)
     const [showApiKey, setShowApiKey] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
     const formRef = useRef<HTMLFormElement>(null)
 
     const form = useForm<FormValues>({
@@ -133,6 +138,36 @@ export function CreateForm() {
     })
 
     const ragEnabled = form.watch("ragEnabled") === "yes"
+
+    // Load assistant data on component mount
+    useEffect(() => {
+        async function loadAssistant() {
+            try {
+                const assistant = await fetchAssistantById(assistantId)
+                
+                // Set form values
+                form.setValue("name", assistant.name)
+                form.setValue("provider", assistant.provider)
+                form.setValue("modelName", assistant.modelName)
+                form.setValue("systemPrompt", assistant.systemPrompt)
+                form.setValue("temperature", assistant.temperature)
+                form.setValue("maxTokens", assistant.maxTokens)
+                form.setValue("ragEnabled", assistant.ragEnabled ? "yes" : "no")
+                form.setValue("apiKey", assistant.apiKey)
+                
+                // Set suggestions
+                setSuggestions(assistant.suggestions || [])
+                
+                setIsLoading(false)
+            } catch (error) {
+                console.error("Failed to load assistant:", error)
+                setErrorMessage("Failed to load assistant data")
+                setIsLoading(false)
+            }
+        }
+        
+        loadAssistant()
+    }, [assistantId, form])
 
     // Function to apply preset configuration
     const applyPreset = (presetKey: string) => {
@@ -198,102 +233,72 @@ export function CreateForm() {
                 })
             }
 
-            console.log("Submitting form with values:", values)
-            console.log("Suggestions:", suggestions)
-            console.log(
-                "Files:",
-                files.map((f) => f.name),
-            )
+            // Call the update assistant action
+            const result = await updateAssistant(assistantId, formData)
 
-            // Submit the form using the server action
-            const result = await createAssistant(formData)
-
-            // Check if we got an error response
-            if (result && !result.success) {
-                setErrorMessage(result.message || "An error occurred while creating the assistant.")
-                return
-            }
-
-            // Handle successful response with redirect
-            if (result && result.success && result.redirect) {
-                router.push(result.redirect)
-                return
-            }
-
-            // If we get here, it means no redirect happened and no errors
-            // Reset the form
-            form.reset()
-            setSuggestions([])
-            setFiles([])
-        } catch (error: any) {
-            // If this is a redirect error from Next.js, don't show an alert
-            if (error?.digest?.includes("NEXT_REDIRECT")) {
-                // This is a redirect, let Next.js handle it
-                return
-            }
-
-            console.error("Error submitting form:", error)
-
-            // Check if it's a file size error
-            if (error.message && error.message.includes("Body exceeded")) {
-                setFileError(
-                    "File upload failed: The total size of all files exceeds the server limit. Please reduce the file size or number of files.",
-                )
+            if (result.success) {
+                router.push(result.redirect || "/dashboard/assistants")
             } else {
-                setErrorMessage("An error occurred while creating the assistant. Please try again.")
+                setErrorMessage(result.message || "Failed to update assistant")
             }
+        } catch (error) {
+            console.error("Error updating assistant:", error)
+            setErrorMessage("An unexpected error occurred. Please try again.")
         } finally {
             setIsSubmitting(false)
         }
     }
 
     function addSuggestion() {
-        if (newSuggestion.trim() !== "") {
-            setSuggestions([...suggestions, newSuggestion])
+        if (newSuggestion.trim()) {
+            setSuggestions([...suggestions, newSuggestion.trim()])
             setNewSuggestion("")
         }
     }
 
-    function removeSuggestion(index: number) {
-        setSuggestions(suggestions.filter((_, i) => i !== index))
+    function removeSuggestion(indexToRemove: number) {
+        setSuggestions(suggestions.filter((_, index) => index !== indexToRemove))
     }
 
     function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-        if (e.target.files) {
-            setFileError(null)
-            const newFiles = Array.from(e.target.files)
+        const selectedFiles = Array.from(e.target.files || [])
+        setFileError(null)
 
-            // Check individual file sizes
-            const oversizedFiles = newFiles.filter((file) => file.size > MAX_FILE_SIZE)
-            if (oversizedFiles.length > 0) {
+        // Validate individual file sizes
+        for (const file of selectedFiles) {
+            if (file.size > MAX_FILE_SIZE) {
                 setFileError(
-                    `Some files exceed the maximum size of ${MAX_FILE_SIZE / (1024 * 1024)}MB: ${oversizedFiles.map((f) => f.name).join(", ")}`,
+                    `File ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds the individual file size limit of ${(MAX_FILE_SIZE / (1024 * 1024)).toFixed(2)}MB.`,
                 )
-                e.target.value = ""
                 return
             }
-
-            // Check total size including existing files
-            const potentialNewFiles = [...files, ...newFiles]
-            const totalSize = calculateTotalFileSize(potentialNewFiles)
-            if (totalSize > MAX_TOTAL_SIZE) {
-                setFileError(
-                    `Total file size would exceed ${(MAX_TOTAL_SIZE / (1024 * 1024)).toFixed(2)}MB. Please remove some files first.`,
-                )
-                e.target.value = ""
-                return
-            }
-
-            // Add new files to existing files
-            setFiles(potentialNewFiles)
         }
-        // Reset the input value so the same file can be selected again if needed
-        e.target.value = ""
+
+        // Check total size
+        const totalSize = calculateTotalFileSize([...files, ...selectedFiles])
+        if (totalSize > MAX_TOTAL_SIZE) {
+            setFileError(
+                `Total file size (${(totalSize / (1024 * 1024)).toFixed(2)}MB) exceeds the limit of ${(MAX_TOTAL_SIZE / (1024 * 1024)).toFixed(2)}MB.`,
+            )
+            return
+        }
+
+        setFiles([...files, ...selectedFiles])
     }
 
     function removeFile(indexToRemove: number) {
         setFiles(files.filter((_, index) => index !== indexToRemove))
-        setFileError(null)
+    }
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center p-8">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                    <p>Loading assistant data...</p>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -344,17 +349,15 @@ export function CreateForm() {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Provider</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select provider" />
+                                            <SelectValue placeholder="Select a provider" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         <SelectItem value="openai">OpenAI</SelectItem>
                                         <SelectItem value="anthropic">Anthropic</SelectItem>
-                                        <SelectItem value="mistral">Mistral AI</SelectItem>
-                                        <SelectItem value="cohere">Cohere</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormDescription>The AI provider for your assistant.</FormDescription>
@@ -369,22 +372,20 @@ export function CreateForm() {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Model</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select model" />
+                                            <SelectValue placeholder="Select a model" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                                        <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+                                        <SelectItem value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</SelectItem>
                                         <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
-                                        <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
-                                        <SelectItem value="mistral-large">Mistral Large</SelectItem>
-                                        <SelectItem value="command-r">Command R</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <FormDescription>The model to use for your assistant.</FormDescription>
+                                <FormDescription>The specific model to use.</FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -393,81 +394,24 @@ export function CreateForm() {
 
                 <FormField
                     control={form.control}
-                    name="apiKey"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>API Key</FormLabel>
-                            <div className="relative">
-                                <FormControl>
-                                    <Input type={showApiKey ? "text" : "password"} placeholder="Enter your API key" {...field} />
-                                </FormControl>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="absolute right-2 top-1/2 -translate-y-1/2"
-                                    onClick={() => setShowApiKey(!showApiKey)}
-                                >
-                                    {showApiKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                                </Button>
-                            </div>
-                            <FormDescription>
-                                Your API key for the selected provider. This will be encrypted before storage.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
                     name="systemPrompt"
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>System Prompt</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="You are a helpful AI assistant..." className="min-h-32" {...field} />
+                                <Textarea
+                                    placeholder="You are a helpful AI assistant..."
+                                    className="min-h-[120px]"
+                                    {...field}
+                                />
                             </FormControl>
-                            <FormDescription>Instructions that define how your assistant behaves.</FormDescription>
+                            <FormDescription>
+                                Define the behavior and capabilities of your assistant.
+                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-
-                <div className="space-y-4">
-                    <div>
-                        <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Suggestions
-                        </div>
-                        <p className="text-sm text-muted-foreground">Add example queries users can select.</p>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <Input
-                            id="suggestions"
-                            value={newSuggestion}
-                            onChange={(e) => setNewSuggestion(e.target.value)}
-                            placeholder="Add a suggestion..."
-                            className="flex-1"
-                        />
-                        <Button type="button" onClick={addSuggestion} size="sm">
-                            <Plus className="size-4 mr-1" /> Add
-                        </Button>
-                    </div>
-
-                    {suggestions.length > 0 && (
-                        <div className="space-y-2 mt-2">
-                            {suggestions.map((suggestion, index) => (
-                                <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-md">
-                                    <span className="text-sm">{suggestion}</span>
-                                    <Button type="button" variant="ghost" size="sm" onClick={() => removeSuggestion(index)}>
-                                        <Trash2 className="size-4 text-destructive" />
-                                    </Button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
@@ -478,15 +422,17 @@ export function CreateForm() {
                                 <FormLabel>Temperature: {field.value}</FormLabel>
                                 <FormControl>
                                     <Slider
-                                        min={0}
-                                        max={2}
-                                        step={0.1}
-                                        defaultValue={[field.value]}
                                         value={[field.value]}
                                         onValueChange={(value) => field.onChange(value[0])}
+                                        max={2}
+                                        min={0}
+                                        step={0.1}
+                                        className="w-full"
                                     />
                                 </FormControl>
-                                <FormDescription>Controls randomness: lower is more deterministic.</FormDescription>
+                                <FormDescription>
+                                    Controls randomness. Lower values are more deterministic.
+                                </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -500,15 +446,17 @@ export function CreateForm() {
                                 <FormLabel>Max Tokens: {field.value}</FormLabel>
                                 <FormControl>
                                     <Slider
-                                        min={1}
-                                        max={32000}
-                                        step={1}
-                                        defaultValue={[field.value]}
                                         value={[field.value]}
                                         onValueChange={(value) => field.onChange(value[0])}
+                                        max={32000}
+                                        min={1}
+                                        step={1}
+                                        className="w-full"
                                     />
                                 </FormControl>
-                                <FormDescription>Maximum length of the generated response.</FormDescription>
+                                <FormDescription>
+                                    Maximum number of tokens in the response.
+                                </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -520,28 +468,30 @@ export function CreateForm() {
                     name="ragEnabled"
                     render={({ field }) => (
                         <FormItem className="space-y-3">
-                            <FormLabel>Enable RAG (Retrieval Augmented Generation)</FormLabel>
+                            <FormLabel>RAG (Retrieval-Augmented Generation)</FormLabel>
                             <FormControl>
                                 <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    className="flex flex-row space-x-4"
+                                    className="flex flex-col space-y-1"
                                 >
-                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormItem className="flex items-center space-x-3 space-y-0">
                                         <FormControl>
                                             <RadioGroupItem value="yes" />
                                         </FormControl>
-                                        <FormLabel className="font-normal">Yes</FormLabel>
+                                        <FormLabel className="font-normal">Enable RAG</FormLabel>
                                     </FormItem>
-                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormItem className="flex items-center space-x-3 space-y-0">
                                         <FormControl>
                                             <RadioGroupItem value="no" />
                                         </FormControl>
-                                        <FormLabel className="font-normal">No</FormLabel>
+                                        <FormLabel className="font-normal">Disable RAG</FormLabel>
                                     </FormItem>
                                 </RadioGroup>
                             </FormControl>
-                            <FormDescription>Allow the assistant to retrieve information from uploaded files.</FormDescription>
+                            <FormDescription>
+                                Enable to allow your assistant to use uploaded documents for context.
+                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -551,48 +501,46 @@ export function CreateForm() {
                     <Card>
                         <CardContent className="pt-6">
                             <div className="space-y-4">
-                                <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                    Upload Files
-                                </div>
-                                <p className="text-sm text-muted-foreground">Upload documents for your assistant to reference.</p>
-
-                                {fileError && (
-                                    <Alert variant="destructive" className="mb-4">
-                                        <AlertCircle className="size-4" />
-                                        <AlertDescription>{fileError}</AlertDescription>
-                                    </Alert>
-                                )}
-
-                                <div className="text-sm text-muted-foreground mb-2">
-                                    Maximum file size: 3MB. Total upload limit: 3.5MB.
+                                <div>
+                                    <FormLabel>Upload Documents (CSV files only)</FormLabel>
+                                    <FormDescription>
+                                        Upload CSV files to provide context for your assistant. Maximum 3MB per file, 3.5MB total.
+                                    </FormDescription>
                                 </div>
 
-                                <Input id="file-upload" type="file" multiple onChange={handleFileChange} />
+                                <div className="space-y-2">
+                                    <Input
+                                        type="file"
+                                        accept=".csv"
+                                        multiple
+                                        onChange={handleFileChange}
+                                        className="cursor-pointer"
+                                    />
+                                    {fileError && (
+                                        <p className="text-sm text-destructive">{fileError}</p>
+                                    )}
+                                </div>
 
                                 {files.length > 0 && (
-                                    <div className="mt-4">
-                                        <p className="text-sm font-medium mb-2">Selected files:</p>
-                                        <ul className="space-y-2">
+                                    <div className="space-y-2">
+                                        <FormLabel>Uploaded Files:</FormLabel>
+                                        <div className="space-y-2">
                                             {files.map((file, index) => (
-                                                <li key={index} className="flex items-center justify-between bg-muted p-2 rounded-md">
-                          <span className="text-sm text-muted-foreground truncate max-w-[250px]">
-                            {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                          </span>
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center justify-between p-2 border rounded"
+                                                >
+                                                    <span className="text-sm">{file.name}</span>
                                                     <Button
                                                         type="button"
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => removeFile(index)}
-                                                        className="size-8 p-0"
                                                     >
-                                                        <Trash2 className="size-4 text-destructive" />
-                                                        <span className="sr-only">Remove file</span>
+                                                        <Trash2 className="h-4 w-4" />
                                                     </Button>
-                                                </li>
+                                                </div>
                                             ))}
-                                        </ul>
-                                        <div className="mt-2 text-sm text-muted-foreground">
-                                            Total size: {(calculateTotalFileSize(files) / (1024 * 1024)).toFixed(2)}MB
                                         </div>
                                     </div>
                                 )}
@@ -601,9 +549,103 @@ export function CreateForm() {
                     </Card>
                 )}
 
-                <Button type="submit" className="w-full" disabled={isSubmitting || !!fileError}>
-                    {isSubmitting ? "Creating..." : "Create Assistant"}
-                </Button>
+                <div className="space-y-4">
+                    <div>
+                        <FormLabel>Suggested Actions</FormLabel>
+                        <FormDescription>
+                            Add example prompts that users can click to start conversations.
+                        </FormDescription>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="Add a suggestion..."
+                                value={newSuggestion}
+                                onChange={(e) => setNewSuggestion(e.target.value)}
+                                onKeyPress={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault()
+                                        addSuggestion()
+                                    }
+                                }}
+                            />
+                            <Button type="button" onClick={addSuggestion} size="sm">
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        {suggestions.length > 0 && (
+                            <div className="space-y-2">
+                                {suggestions.map((suggestion, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center justify-between p-2 border rounded"
+                                    >
+                                        <span className="text-sm">{suggestion}</span>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => removeSuggestion(index)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <FormField
+                    control={form.control}
+                    name="apiKey"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>API Key</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                    <Input
+                                        type={showApiKey ? "text" : "password"}
+                                        placeholder="Enter your API key"
+                                        {...field}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                                        onClick={() => setShowApiKey(!showApiKey)}
+                                    >
+                                        {showApiKey ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </Button>
+                                </div>
+                            </FormControl>
+                            <FormDescription>
+                                Your API key for the selected provider.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <div className="flex gap-4">
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Updating..." : "Update Assistant"}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => router.push("/dashboard/assistants")}
+                    >
+                        Cancel
+                    </Button>
+                </div>
             </form>
         </Form>
     )

@@ -3,7 +3,7 @@ import Footer from "@/app/footer";
 export default function Home() {
   return (
       <main className="mx-auto max-w-3xl">
-        <h1 className="mb-6 text-4xl font-bold">Welcome to Neurosecure</h1>
+        <h1 className="mb-6 text-4xl font-bold">Welcome to Velonova AI </h1>
         <p className="mb-4">
          GenAI productivity Assistants for Startup.
 

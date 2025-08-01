@@ -6,7 +6,7 @@ import DeleteButton from "./delete-button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Eye } from "lucide-react"
+import { Eye, Edit } from "lucide-react"
 import { useRouter } from "next/navigation"
 import {useAssistantStore} from "@/app/dashboard/assistants/store";
 import {formatDate} from "@/app/dashboard/utils";
@@ -19,6 +19,10 @@ export default function AssistantsTable({ assistants }: { assistants: Assistant[
     const handleViewAssistant = (assistant: Assistant) => {
         setAssistant(assistant)
         router.push("/")
+    }
+
+    const handleEditAssistant = (assistantId: string) => {
+        router.push(`/dashboard/assistants/${assistantId}/edit`)
     }
 
     return (
@@ -59,6 +63,15 @@ export default function AssistantsTable({ assistants }: { assistants: Assistant[
                                         >
                                             <Eye className="size-5" />
                                             <span className="sr-only">View</span>
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-blue-600 hover:text-blue-700"
+                                            onClick={() => handleEditAssistant(assistant.id)}
+                                        >
+                                            <Edit className="size-5" />
+                                            <span className="sr-only">Edit</span>
                                         </Button>
                                         <DeleteButton id={assistant.id} name={assistant.name} />
                                     </div>
