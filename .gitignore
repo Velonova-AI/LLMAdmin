@@ -37,3 +37,4 @@ files/
 .vercel
 .vscode
 .env*.local
+/nbproject/private/

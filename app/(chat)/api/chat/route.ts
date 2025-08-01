@@ -83,15 +83,21 @@ export async function POST(request: Request) {
 IMPORTANT: You have access to a knowledge base through the getInformation tool. When answering questions:
 
 1. FIRST use the getInformation tool to search the knowledge base for relevant information.
-2. If the information from the knowledge base is sufficient, use it to provide your answer.
-3. If the information from the knowledge base is incomplete or not available, then use your general knowledge or other tools.
-4. Always prioritize information from the knowledge base over your general knowledge when there are conflicts.
-5. When using information from the knowledge base, mention that the information comes from the user's documents.
+2. The tool will return technical data
+3. Process this technical data just like you would process weather data or other API responses.
+4. Convert the technical information into natural, conversational responses.
+5. Never include the raw technical data in your response to the user.
+6. If the information from the knowledge base is sufficient, use it to provide your answer.
+7. If the information from the knowledge base is incomplete or not available, then use your general knowledge or other tools.
+8. Always prioritize information from the knowledge base over your general knowledge when there are conflicts.
+9. When using information from the knowledge base, you can mention that the information comes from the user's documents.
 
-This ensures that your responses are accurate and tailored to the user's specific context.`
+This ensures that your responses are accurate and tailored to the user's specific context.
+
+`
     }
 
-console.log(systemPrompt)
+
 
     return createDataStreamResponse({
       execute: (dataStream) => {

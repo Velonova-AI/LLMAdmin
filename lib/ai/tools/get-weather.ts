@@ -13,6 +13,7 @@ export const getWeather = tool({
     );
 
     const weatherData = await response.json();
+    //console.log(weatherData);
     return weatherData;
   },
 });
