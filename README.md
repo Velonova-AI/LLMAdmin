@@ -1,19 +1,12 @@
-<a href="https://velonova.ai">
-  <img alt="" src="app/(chat)/opengraph-image.png">
+
   <h1 align="center">LLMAdmin</h1>
-</a>
+
 
 <p align="center">
-  An Open-Source  Admin Dashboard and Stripe Billing for AI Assistants Template Built With Next.js and the AI SDK by Vercel.
+  An Open-Source LLM Admin Dashboard for creating and managing LLM's built With Next.js and the AI SDK by Vercel.
 </p>
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#model-providers"><strong>Model Providers</strong></a> ·
-  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
-  <a href="#running-locally"><strong>Running locally</strong></a>
-</p>
-<br/>
+
 
 ## Features
 
@@ -31,11 +24,6 @@
 
 You will need to use the environment variables [defined in `.env.example`](.env.example) to run Next.js AI Chatbot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
 
-> Note: You should not commit your `.env` file or it will expose secrets that will allow others to control access to your various OpenAI and authentication provider accounts.
-
-1. Install Vercel CLI: `npm i -g vercel`
-2. Link local instance with Vercel and GitHub accounts (creates `.vercel` directory): `vercel link`
-3. Download your environment variables: `vercel env pull`
 
 ```bash
 pnpm install
@@ -44,4 +32,4 @@ pnpm dev
 
 Your app template should now be running on [localhost:3000](http://localhost:3000/).
 
-
+You modify the code to your needs as per the documentation on https://ai-sdk.dev/ and https://github.com/vercel/ai-chatbot
