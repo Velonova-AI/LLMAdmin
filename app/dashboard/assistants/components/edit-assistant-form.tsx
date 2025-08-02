@@ -381,8 +381,10 @@ export function EditForm({ assistantId }: EditFormProps) {
                                     <SelectContent>
                                         <SelectItem value="gpt-4o">GPT-4o</SelectItem>
                                         <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
-                                        <SelectItem value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</SelectItem>
-                                        <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
+                                        <SelectItem value="claude-opus-4-20250514">Claude Opus 4</SelectItem>
+                                        <SelectItem value="claude-sonnet-4-20250514">Claude Sonnet 4</SelectItem>
+                                        <SelectItem value="claude-3-7-sonnet-20250219">Claude 3.7 Sonnet</SelectItem>
+                                        <SelectItem value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormDescription>The specific model to use.</FormDescription>

@@ -364,11 +364,11 @@ export function CreateForm() {
                                     </FormControl>
                                     <SelectContent>
                                         <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                                        <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
-                                        <SelectItem value="claude-3-5-haiku-latest">claude-3-5-haiku-latest</SelectItem>
-                                        <SelectItem value="claude-3-7-sonnet-latest">claude-3-7-sonnet-latest</SelectItem>
-                                        <SelectItem value="mistral-large">Mistral Large</SelectItem>
-                                        <SelectItem value="claude-3-5-sonnet-latest">claude-3-5-sonnet-latest</SelectItem>
+                                        <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+                                        <SelectItem value="claude-opus-4-20250514">Claude Opus 4</SelectItem>
+                                        <SelectItem value="claude-sonnet-4-20250514">Claude Sonnet 4</SelectItem>
+                                        <SelectItem value="claude-3-7-sonnet-20250219">Claude 3.7 Sonnet</SelectItem>
+                                        <SelectItem value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormDescription>The model to use for your assistant.</FormDescription>
