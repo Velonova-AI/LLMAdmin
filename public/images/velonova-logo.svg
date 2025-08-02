@@ -1,1 +1,23 @@
- 
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="15" fill="white" stroke="#1e40af" stroke-width="1"/>
+  
+  <!-- Bicycle frame -->
+  <path d="M8 20 L12 12 L20 12 L24 20" stroke="#1e40af" stroke-width="1.5" fill="none"/>
+  
+  <!-- Wheels -->
+  <circle cx="10" cy="20" r="3" stroke="#1e40af" stroke-width="1.5" fill="none"/>
+  <circle cx="22" cy="20" r="3" stroke="#1e40af" stroke-width="1.5" fill="none"/>
+  
+  <!-- Cyclist silhouette -->
+  <ellipse cx="16" cy="10" rx="2" ry="3" fill="#1e40af"/>
+  <path d="M14 13 L16 15 L18 13" stroke="#1e40af" stroke-width="1.5" fill="none"/>
+  
+  <!-- Speed lines -->
+  <path d="M6 18 L4 18" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
+  <path d="M6 19 L3 19" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M6 20 L4 20" stroke="#22c55e" stroke-width="1" stroke-linecap="round"/>
+  
+  <!-- Goggles stripe -->
+  <rect x="13" y="9" width="6" height="1" fill="#22c55e"/>
+</svg> 
