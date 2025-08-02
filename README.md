@@ -1,7 +1,6 @@
-<a href="https://velonova.ai">
-  <img alt="Next.js 14 and App Router-ready AI chatbot." src="app/(chat)/opengraph-image.png">
+
   <h1 align="center">LLMAdmin</h1>
-</a>
+
 
 <p align="center">
   An Open-Source LLM Admin Dashboard for creating and managing LLM's built With Next.js and the AI SDK by Vercel.
@@ -9,11 +8,11 @@
 
 ## Screenshots
 
-<div align="center">
-  <img src="public/images/create.png" alt="Create Assistant" width="300" />
-  <img src="public/images/manage.png" alt="Manage Assistants" width="300" />
-  <img src="public/images/chat.png" alt="Chat Interface" width="300" />
-</div>
+
+  <img src="public/images/create.png" alt="Create Assistant"  />
+  <img src="public/images/manage.png" alt="Manage Assistants"  />
+  <img src="public/images/chat.png" alt="Chat Interface"  />
+
 
 ## Features
 
