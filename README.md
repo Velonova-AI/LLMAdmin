@@ -23,7 +23,9 @@
 
 
 
-## Deploy Your Own
+## Deploy Your Own or to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FVelonova-AI%2FLLMAdmin&env=OPENAI_API_KEY,POSTGRES_URL,AUTH_SECRET&envDescription=OPENAI%20APU%20key%20as%20well%20as%20neon%20db%20and%20an%20Auth%20secret%20is%20required%20for%20it%20to%20work&envLink=https%3A%2F%2Fplatform.openai.com%2Fapi-keys&project-name=llmadmin&repository-name=llmadmin-fork)
 
 
 ## Running locally
