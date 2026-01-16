@@ -192,7 +192,7 @@ export async function POST(request: Request) {
     await createStreamId({ streamId, chatId: id });
 
     // Get profile to access role for message usage
-    const profileClient = postgres(process.env.POSTGRES_URL!);
+    const profileClient = postgres(process.env.DATABASE_URL!);
     const profileDb = drizzle(profileClient);
     
     const profileResult = await profileDb
