@@ -216,7 +216,7 @@ export async function POST(request: Request) {
     let sendMessageUsageFn: (() => Promise<void>) | null = null;
 
     const stream = createUIMessageStream({
-      execute: ({ writer: dataStream }) => {
+      execute: async ({ writer: dataStream }) => {
         // Handle title generation in parallel
         if (titlePromise) {
           titlePromise.then((title) => {
@@ -240,10 +240,13 @@ export async function POST(request: Request) {
         console.log("System Prompt Preview:", systemPromptText?.substring(0, 100) || "None");
         console.log("=============================");
 
+        // Convert messages to model format - ensure it's awaited if async
+        const modelMessages = await Promise.resolve(convertToModelMessages(uiMessages));
+
         const result = streamText({
           model: getLanguageModel(modelId),
           system: systemPromptText,
-          messages: convertToModelMessages(uiMessages),
+          messages: modelMessages,
           stopWhen: stepCountIs(5),
           experimental_activeTools: isReasoningModel
             ? []
