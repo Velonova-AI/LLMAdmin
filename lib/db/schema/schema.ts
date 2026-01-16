@@ -18,18 +18,23 @@ import {
 // export const bruxelles = pgSchema("bruxelles");
 
 // Profiles table that references Supabase auth.users
+// Profiles table reference (exists in public schema, not defined here)
+// Using pgTable() defaults to public schema - Drizzle doesn't allow explicit 'public' schema
+// This is a minimal definition for type reference only
 export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey().notNull(), // References auth.users.id
   firstName: text('first_name'),
   surname: text('surname'),
   email: text('email').unique().notNull(),
-  musicalLevel: varchar('musical_level', {
-    enum: ['beginner', 'intermediate', 'advanced', 'professional'],
-  }),
+  startupName: text('startup_name').default('other').notNull(),
+  founderName: text('founder_name').default('other').notNull(),
+  industry: text('industry').default('other').notNull(),
+  stage: text('stage').default('other').notNull(),
+  
+  bio: text('bio').default('other').notNull(),
   profilePhotoUrl: text('profile_photo_url'),
-  instruments: text('instruments').array().default([]),
-  musicalStyles: text('musical_styles').array().default([]),
-  bio: text('bio'),
+
+ 
   website: text('website'),
   stripeCustomerId: text('stripe_customer_id'),
   stripeSubscriptionId: text('stripe_subscription_id'),
@@ -50,7 +55,6 @@ export const profiles = pgTable('profiles', {
 
 export type Profiles = InferSelectModel<typeof profiles>;
 
-export type Profile = InferSelectModel<typeof profiles>;
 
 export const assistants = pgTable('assistants', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
