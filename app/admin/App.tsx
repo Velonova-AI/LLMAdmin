@@ -27,6 +27,7 @@ import { SignupForm } from "@/components/signup-form";
 import { LoginForm } from "@/components/login-form";
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
 import { ProfileEdit } from "./profile/profile-edit";
+import { ProfileProvider } from "./profile/profile-context";
 
 
 const App = () => {
@@ -36,6 +37,7 @@ const App = () => {
   }, []);
 
   return (
+    <ProfileProvider>
     <Admin  loginPage={LoginForm} dataProvider={dataProvider} i18nProvider={i18nProvider} authProvider={authProvider} dashboard={Dashboard}>
       <Resource name="Chatb" list={ChatList} options={{ label: 'Chat History' }} create={ChatCreate}/>
 
@@ -61,6 +63,7 @@ const App = () => {
       </CustomRoutes>
      
     </Admin>
+    </ProfileProvider>
   );
 };
 

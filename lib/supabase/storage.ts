@@ -9,7 +9,7 @@ export async function uploadProfilePhoto(file: File, userId: string): Promise<st
   
   // Upload the file
   const { error } = await supabase.storage
-    .from('profile-photos')
+    .from('Files')
     .upload(fileName, file, {
       cacheControl: '3600',
       upsert: true // Replace existing file
@@ -22,7 +22,7 @@ export async function uploadProfilePhoto(file: File, userId: string): Promise<st
 
   // Get the public URL
   const { data: urlData } = supabase.storage
-    .from('profile-photos')
+    .from('Files')
     .getPublicUrl(fileName);
 
   return urlData.publicUrl;

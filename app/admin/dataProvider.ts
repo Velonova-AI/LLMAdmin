@@ -1,6 +1,7 @@
 import { supabaseDataProvider } from 'ra-supabase-core';
 import { createClient } from '@/lib/supabase/client';
 import type { DataProvider } from 'ra-core';
+import { getProfile, updateProfile } from '@/lib/supabase/profiles';
 
 // Create browser-based Supabase client
 export const supabase = createClient();
@@ -270,6 +271,54 @@ export const dataProvider: DataProvider = {
         
         return baseDataProvider.deleteMany(resource, params);
     },
+
+    getUserProfile: async () => {
+        try {
+          const profile = await getProfile();
+          return { data: profile };
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          throw error;
+        }
+      },
+    
+      updateUserProfile: async (params: { data: any }) => {
+        try {
+          const updatedProfile = await updateProfile(params.data);
+          return { data: updatedProfile };
+        } catch (error: any) {
+          console.error('Error updating user profile:', error);
+          
+          // Check for unique constraint violation on email
+          // PostgreSQL error code 23505 is unique_violation
+          // Supabase might return this in different formats
+          const errorMessage = error?.message || '';
+          const errorCode = error?.code || error?.error?.code;
+          
+          // Check if it's a unique constraint error related to email
+          if (
+            errorCode === '23505' ||
+            errorMessage.includes('unique constraint') ||
+            errorMessage.includes('duplicate key') ||
+            errorMessage.includes('profiles_email_unique') ||
+            (errorMessage.toLowerCase().includes('email') && 
+             (errorMessage.toLowerCase().includes('already') || 
+              errorMessage.toLowerCase().includes('exists') ||
+              errorMessage.toLowerCase().includes('unique')))
+          ) {
+            // Throw ValidationError in React Admin format
+            const validationError: any = new Error('Validation error');
+            validationError.body = {
+              errors: {
+                email: 'This email is already taken. Please use a different email address.',
+              },
+            };
+            throw validationError;
+          }
+          
+          throw error;
+        }
+      },
 };
 
 

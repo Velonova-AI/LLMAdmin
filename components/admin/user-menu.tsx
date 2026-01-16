@@ -6,7 +6,8 @@ import {
   useLogout,
   UserMenuContext,
 } from "ra-core";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
+import { Link } from "react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,24 +18,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useProfile } from "@/app/admin/profile/profile-context";
 
 export type UserMenuProps = {
   children?: React.ReactNode;
 };
 
-/**
- * A user menu component displayed in the top right corner of the admin layout.
- *
- * Provides access to user-related actions such as profile, settings, and logout.
- * Displays the user's avatar and name from the identity provider, and includes a logout option.
- * Only displays in applications using authentication.
- *
- * @see {@link https://marmelab.com/shadcn-admin-kit/docs/usermenu UserMenu documentation}
- */
 export function UserMenu({ children }: UserMenuProps) {
   const authProvider = useAuthProvider();
   const { data: identity } = useGetIdentity();
   const logout = useLogout();
+  
+  // Get profile version for refresh mechanism
+  // ProfileProvider wraps Admin, so this should always be available
+  const { profileVersion } = useProfile();
 
   const [open, setOpen] = useState(false);
 
@@ -50,7 +47,7 @@ export function UserMenu({ children }: UserMenuProps) {
 
   return (
     <UserMenuContext.Provider value={{ onClose: handleClose }}>
-      <DropdownMenu open={open} onOpenChange={handleToggleOpen}>
+      <DropdownMenu key={profileVersion} open={open} onOpenChange={handleToggleOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
@@ -71,6 +68,12 @@ export function UserMenu({ children }: UserMenuProps) {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link to="/my-profile" className="cursor-pointer flex items-center">
+              <Settings className="mr-2 h-4 w-4" />
+              <Translate i18nKey="ra.page.myProfile">My Profile</Translate>
+            </Link>
+          </DropdownMenuItem>
           {children}
           {Children.count(children) > 0 && <DropdownMenuSeparator />}
           <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
