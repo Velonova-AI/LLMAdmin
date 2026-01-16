@@ -1,0 +1,276 @@
+import { supabaseDataProvider } from 'ra-supabase-core';
+import { createClient } from '@/lib/supabase/client';
+import type { DataProvider } from 'ra-core';
+
+// Create browser-based Supabase client
+export const supabase = createClient();
+
+// #region agent log
+if(typeof window!=='undefined'){fetch('http://127.0.0.1:7242/ingest/0250316e-cc04-48a9-9b15-1e69ff1db2a9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'bruxelles/app/admin/dataProvider.ts:6',message:'dataProvider supabase client created',data:{isClient:typeof window!=='undefined',hostname:typeof window!=='undefined'?window.location.hostname:'server'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});}
+// #endregion
+
+// Base data provider
+const baseDataProvider = supabaseDataProvider({
+    instanceUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    apiKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseClient: supabase,
+});
+
+// Resources that should be filtered by user
+const USER_FILTERED_RESOURCES = ['assistants', 'Chatb'];
+
+// Helper to get current user ID
+async function getCurrentUserId(): Promise<string | null> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        return user?.id || null;
+    } catch (error) {
+        console.error('Error getting current user:', error);
+        return null;
+    }
+}
+
+// Helper to add user filter to filter object
+function addUserFilter(
+    resource: string,
+    filter: any,
+    userId: string
+): any {
+    if (!USER_FILTERED_RESOURCES.includes(resource)) {
+        return filter;
+    }
+
+    // Map resource names to their user ID field names
+    const userFieldMap: Record<string, string> = {
+        'assistants': 'user_id',
+        'Chatb': 'userId',
+    };
+
+    const userField = userFieldMap[resource];
+    if (!userField) {
+        return filter;
+    }
+
+    // Merge existing filters with user filter
+    return {
+        ...filter,
+        [userField]: userId,
+    };
+}
+
+// Wrapper that adds user filtering
+export const dataProvider: DataProvider = {
+    ...baseDataProvider,
+    
+    async getList(resource: string, params: any) {
+        const userId = await getCurrentUserId();
+        
+        if (userId && USER_FILTERED_RESOURCES.includes(resource)) {
+            const filteredParams = {
+                ...params,
+                filter: addUserFilter(resource, params.filter || {}, userId),
+            };
+            return baseDataProvider.getList(resource, filteredParams);
+        }
+        
+        return baseDataProvider.getList(resource, params);
+    },
+
+    async getOne(resource: string, params: any) {
+        const userId = await getCurrentUserId();
+        
+        if (userId && USER_FILTERED_RESOURCES.includes(resource)) {
+            // First get the record
+            const result = await baseDataProvider.getOne(resource, params);
+            
+            // Check if it belongs to the user
+            const userFieldMap: Record<string, string> = {
+                'assistants': 'user_id',
+                'Chatb': 'userId',
+            };
+            const userField = userFieldMap[resource];
+            
+            if (result.data[userField] !== userId) {
+                throw new Error('Not found');
+            }
+            
+            return result;
+        }
+        
+        return baseDataProvider.getOne(resource, params);
+    },
+
+    async getMany(resource: string, params: any) {
+        const userId = await getCurrentUserId();
+        
+        if (userId && USER_FILTERED_RESOURCES.includes(resource)) {
+            // For getMany, we need to filter the IDs by user ownership
+            // First get all the requested records
+            const results = await Promise.all(
+                params.ids.map((id: string) => 
+                    baseDataProvider.getOne(resource, { id }).catch(() => null)
+                )
+            );
+            
+            // Filter to only those belonging to the user
+            const userFieldMap: Record<string, string> = {
+                'assistants': 'user_id',
+                'Chatb': 'userId',
+            };
+            const userField = userFieldMap[resource];
+            
+            const filteredData = results
+                .filter((result) => result && result.data[userField] === userId)
+                .map((result) => result!.data);
+            
+            return {
+                data: filteredData,
+            };
+        }
+        
+        return baseDataProvider.getMany(resource, params);
+    },
+
+    async update(resource: string, params: any) {
+        const userId = await getCurrentUserId();
+        
+        if (userId && USER_FILTERED_RESOURCES.includes(resource)) {
+            // Verify ownership before updating
+            const existing = await baseDataProvider.getOne(resource, { id: params.id });
+            const userFieldMap: Record<string, string> = {
+                'assistants': 'user_id',
+                'Chatb': 'userId',
+            };
+            const userField = userFieldMap[resource];
+            
+            if (existing.data[userField] !== userId) {
+                throw new Error('Not authorized');
+            }
+        }
+        
+        return baseDataProvider.update(resource, params);
+    },
+
+    async updateMany(resource: string, params: any) {
+        const userId = await getCurrentUserId();
+        
+        if (userId && USER_FILTERED_RESOURCES.includes(resource)) {
+            // Filter to only update records belonging to the user
+            const results = await Promise.all(
+                params.ids.map((id: string) => 
+                    baseDataProvider.getOne(resource, { id }).catch(() => null)
+                )
+            );
+            
+            const userFieldMap: Record<string, string> = {
+                'assistants': 'user_id',
+                'Chatb': 'userId',
+            };
+            const userField = userFieldMap[resource];
+            
+            const userOwnedIds = results
+                .filter((result) => result && result.data[userField] === userId)
+                .map((result) => result!.data.id);
+            
+            if (userOwnedIds.length === 0) {
+                return { data: [] };
+            }
+            
+            return baseDataProvider.updateMany(resource, {
+                ...params,
+                ids: userOwnedIds,
+            });
+        }
+        
+        return baseDataProvider.updateMany(resource, params);
+    },
+
+    async delete(resource: string, params: any) {
+        const userId = await getCurrentUserId();
+        
+        if (userId && USER_FILTERED_RESOURCES.includes(resource)) {
+            // Verify ownership before deleting
+            const existing = await baseDataProvider.getOne(resource, { id: params.id });
+            const userFieldMap: Record<string, string> = {
+                'assistants': 'user_id',
+                'Chatb': 'userId',
+            };
+            const userField = userFieldMap[resource];
+            
+            if (existing.data[userField] !== userId) {
+                throw new Error('Not authorized');
+            }
+        }
+        
+        // For Chatb, use the API route that handles foreign keys properly
+        if (resource === 'Chatb') {
+            const response = await fetch(`/api/chat?id=${params.id}`, {
+                method: 'DELETE',
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to delete chat: ${response.statusText}`);
+            }
+            
+            const deletedChat = await response.json();
+            return { data: deletedChat };
+        }
+        
+        return baseDataProvider.delete(resource, params);
+    },
+
+    async deleteMany(resource: string, params: any) {
+        const userId = await getCurrentUserId();
+        
+        if (userId && USER_FILTERED_RESOURCES.includes(resource)) {
+            // Filter to only delete records belonging to the user
+            const results = await Promise.all(
+                params.ids.map((id: string) => 
+                    baseDataProvider.getOne(resource, { id }).catch(() => null)
+                )
+            );
+            
+            const userFieldMap: Record<string, string> = {
+                'assistants': 'user_id',
+                'Chatb': 'userId',
+            };
+            const userField = userFieldMap[resource];
+            
+            const userOwnedIds = results
+                .filter((result) => result && result.data[userField] === userId)
+                .map((result) => result!.data.id);
+            
+            if (userOwnedIds.length === 0) {
+                return { data: [] };
+            }
+            
+            // For Chatb, use the API route for each deletion
+            if (resource === 'Chatb') {
+                const deletePromises = userOwnedIds.map(async (id: string) => {
+                    const response = await fetch(`/api/chat?id=${id}`, {
+                        method: 'DELETE',
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to delete chat ${id}: ${response.statusText}`);
+                    }
+                    
+                    return await response.json();
+                });
+                
+                const deletedChats = await Promise.all(deletePromises);
+                return { data: deletedChats };
+            }
+            
+            return baseDataProvider.deleteMany(resource, {
+                ...params,
+                ids: userOwnedIds,
+            });
+        }
+        
+        return baseDataProvider.deleteMany(resource, params);
+    },
+};
+
+
+

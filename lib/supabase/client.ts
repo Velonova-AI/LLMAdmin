@@ -6,7 +6,7 @@ export function createClient() {
   // Note: ra-supabase-core still requires schema-qualified resource names in Resource components
   const client = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
   
   // Add console logs for cookie operations
