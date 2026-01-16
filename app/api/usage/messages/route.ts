@@ -20,7 +20,7 @@ export async function GET() {
 
 
     // Get profile to access role
-    const profileClient = postgres(process.env.POSTGRES_URL!);
+    const profileClient = postgres(process.env.DATABASE_URL!);
     const profileDb = drizzle(profileClient);
     
     const profileResult = await profileDb

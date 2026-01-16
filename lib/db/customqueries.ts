@@ -8,7 +8,7 @@ import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import type { UserType } from "@/app/(auth)/auth";
 
 // biome-ignore lint: Forbidden non-null assertion.
-const client = postgres(process.env.POSTGRES_URL!);
+const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
 
 /**
