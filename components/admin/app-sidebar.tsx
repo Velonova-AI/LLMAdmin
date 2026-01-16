@@ -21,20 +21,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { House, List, Shell } from "lucide-react";
+import { Bike, House, List, CreditCard } from "lucide-react";
 
-/**
- * Navigation sidebar displaying menu items, allowing users to navigate between different sections of the application.
- *
- * The sidebar can collapse to an icon-only view and renders as a collapsible drawer on mobile devices.
- * It automatically includes links to the dashboard (if defined) and all list views defined in Resource components.
- *
- * Included in the default Layout component
- *
- * @see {@link https://marmelab.com/shadcn-admin-kit/docs/appsidebar AppSidebar documentation}
- * @see {@link https://ui.shadcn.com/docs/components/sidebar shadcn/ui Sidebar component}
- * @see layout.tsx
- */
 export function AppSidebar() {
   const hasDashboard = useHasDashboard();
   const resources = useResourceDefinitions();
@@ -54,8 +42,8 @@ export function AppSidebar() {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link to="/">
-                <Shell className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <Bike className="!size-5" />
+                <span className="text-base font-semibold">Velonova AI</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -77,6 +65,7 @@ export function AppSidebar() {
                     onClick={handleClick}
                   />
                 ))}
+              <BillingMenuItem onClick={handleClick} />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -86,15 +75,6 @@ export function AppSidebar() {
   );
 }
 
-/**
- * Menu item for the dashboard link in the sidebar.
- *
- * This component renders a sidebar menu item that links to the dashboard page.
- * It displays as active when the user is on the dashboard route.
- *
- * @example
- * <DashboardMenuItem onClick={handleClick} />
- */
 export const DashboardMenuItem = ({ onClick }: { onClick?: () => void }) => {
   const translate = useTranslate();
   const label = translate("ra.page.dashboard", {
@@ -113,16 +93,24 @@ export const DashboardMenuItem = ({ onClick }: { onClick?: () => void }) => {
   );
 };
 
-/**
- * Menu item for a resource link in the sidebar.
- *
- * This component renders a sidebar menu item that links to a resource's list view.
- * It checks permissions using canAccess and displays as active when the user is viewing that resource.
- * The component icon and label are derived from the resource definition.
- *
- * @example
- * <ResourceMenuItem key={name} name="posts" onClick={handleClick} />
- */
+export const BillingMenuItem = ({ onClick }: { onClick?: () => void }) => {
+  const translate = useTranslate();
+  const label = translate("ra.page.billing", {
+    _: "Billing",
+  });
+  const match = useMatch({ path: "/billing", end: false });
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={!!match}>
+        <Link to="/billing" onClick={onClick}>
+          <CreditCard />
+          {label}
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+};
+
 export const ResourceMenuItem = ({
   name,
   onClick,
