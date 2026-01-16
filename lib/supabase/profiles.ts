@@ -1,5 +1,48 @@
 import { createClient } from './client';
-import type { Profile, ProfileUpdate, ProfileFormData } from '@/lib/types/profile';
+
+// Type definitions for profile operations
+export type ProfileUpdate = {
+  email?: string;
+  first_name?: string;
+  surname?: string;
+  startup_name?: string;
+  founder_name?: string;
+  industry?: string;
+  stage?: string;
+  bio?: string;
+  website?: string | null;
+  musical_level?: string;
+  profile_photo_url?: string;
+  instruments?: string[];
+  musical_styles?: string[];
+  [key: string]: any; // Allow other fields
+};
+
+export type Profile = {
+  id: string;
+  email: string;
+  first_name?: string;
+  surname?: string;
+  startup_name?: string;
+  founder_name?: string;
+  industry?: string;
+  stage?: string;
+  bio?: string;
+  website?: string;
+  [key: string]: any;
+};
+
+export type ProfileFormData = {
+  firstName?: string;
+  surname?: string;
+  email?: string;
+  musicalLevel?: string;
+  profilePhotoUrl?: string;
+  instruments?: string[];
+  musicalStyles?: string[];
+  bio?: string;
+  website?: string;
+};
 
 export async function getProfile(userId?: string) {
   const supabase = createClient();
@@ -57,17 +100,33 @@ export async function createProfile(profileData: ProfileUpdate, userId?: string)
     userId = user.id;
   }
 
+  const insertData = { id: userId, ...profileData };
+  
+  console.log('Creating profile with data:', {
+    userId,
+    profileData,
+    insertData,
+  });
+
   const { data, error } = await supabase
     .from('profiles')
-    .insert({ id: userId, ...profileData })
+    .insert(insertData)
     .select()
     .single();
 
   if (error) {
-    console.error('Error creating profile:', error);
+    console.error('Error creating profile - Full error details:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+      error: error,
+      insertData,
+    });
     throw error;
   }
 
+  console.log('Profile created successfully:', data);
   return data as Profile;
 }
 
@@ -92,6 +151,31 @@ export async function upsertProfile(profileData: ProfileUpdate, userId?: string)
   }
 
   return data as Profile;
+}
+
+// Helper function to transform signup form data to profile format
+export function transformSignupDataToProfile(signupData: {
+  email: string;
+  startupName: string;
+  founderName: string;
+  industry: string;
+  stage: string;
+  bio: string;
+  website?: string;
+}): ProfileUpdate {
+  // Ensure all required fields have values (database has defaults but we should provide them)
+  const profileData: ProfileUpdate = {
+    email: signupData.email.trim(),
+    startup_name: signupData.startupName.trim() || 'other',
+    founder_name: signupData.founderName.trim() || 'other',
+    industry: signupData.industry.trim() || 'other',
+    stage: signupData.stage.trim() || 'other',
+    bio: signupData.bio.trim() || 'other',
+    website: signupData.website?.trim() || null,
+  } as ProfileUpdate;
+  
+  console.log('Transformed profile data:', profileData);
+  return profileData;
 }
 
 // Helper function to transform form data to database format

@@ -22,6 +22,11 @@ import { ChatCreate, ChatList } from "./chat";
 import { authProvider } from "./authProvider";
 import { ChatPage } from "./ChatPage";
 import { Dashboard } from "./Dashboard";
+import { BillingPage } from "@/components/custom/billing-page";
+import { SignupForm } from "@/components/signup-form";
+import { LoginForm } from "@/components/login-form";
+import { ForgotPasswordForm } from "@/components/forgot-password-form";
+import { ProfileEdit } from "./profile/profile-edit";
 
 
 const App = () => {
@@ -31,7 +36,7 @@ const App = () => {
   }, []);
 
   return (
-    <Admin dataProvider={dataProvider} i18nProvider={i18nProvider} authProvider={authProvider} dashboard={Dashboard}>
+    <Admin  loginPage={LoginForm} dataProvider={dataProvider} i18nProvider={i18nProvider} authProvider={authProvider} dashboard={Dashboard}>
       <Resource name="Chatb" list={ChatList} options={{ label: 'Chat History' }} create={ChatCreate}/>
 
       <Resource name="assistants" list={AssistantList} edit={AssistantEdit} show={AssistantShow} create={AssistantCreate} />
@@ -45,7 +50,16 @@ const App = () => {
         <Route path="/learn/prompt-engineering" element={<PromptEngineeringPage />} />
         <Route path="/learn/vibe-coding" element={<VibeCodingPage />} />
         <Route path="/chat/:id" element={<ChatPage />} />
+        <Route path="/billing" element={<BillingPage />} />
+        <Route path="/my-profile" element={<ProfileEdit />} /> 
       </CustomRoutes>
+
+      <CustomRoutes noLayout>
+        <Route path="/signup" element={<SignupForm />} />
+       
+        <Route path="/forgot-password" element={<ForgotPasswordForm />} />
+      </CustomRoutes>
+     
     </Admin>
   );
 };
