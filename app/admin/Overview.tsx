@@ -1,12 +1,34 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "react-router";
 import { User, CreditCard } from "lucide-react";
+import { useDataProvider } from "ra-core";
+import { calculateProfileCompletion } from "@/lib/utils/profile-completion";
 
 export const Overview = () => {
+  const dataProvider = useDataProvider();
+  const [completion, setCompletion] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const result = await dataProvider.getUserProfile();
+        const percentage = calculateProfileCompletion(result.data);
+        setCompletion(percentage);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        setCompletion(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [dataProvider]);
   return (
     <div className="p-6">
       <Card>
@@ -30,9 +52,11 @@ export const Overview = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Profile Completion</span>
-                    <span className="font-medium">75%</span>
+                    <span className="font-medium">
+                      {loading ? "..." : `${Math.round(completion)}%`}
+                    </span>
                   </div>
-                  <Progress value={75} className="h-2" />
+                  <Progress value={loading ? 0 : completion} className="h-2" />
                 </div>
               </CardContent>
             </Card>
