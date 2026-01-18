@@ -65,9 +65,34 @@ const getUserField = (resource: string): string | null => {
 export const dataProvider: DataProvider = {
     ...baseDataProvider,
     
+    async create(resource: string, params: any) {
+        const isAdmin = await isAdminUser();
+        
+        // Block non-admin access to assistants in admin UI
+        if (resource === 'assistants') {
+            if (!isAdmin) {
+                throw new Error('Access denied: Admin only');
+            }
+            // Admins can create assistants
+            return baseDataProvider.create(resource, params);
+        }
+        
+        // For other resources, allow creation (will be filtered by user_id if applicable)
+        return baseDataProvider.create(resource, params);
+    },
+    
     async getList(resource: string, params: any) {
         const userId = await getCurrentUserId();
         const isAdmin = await isAdminUser();
+        
+        // Block non-admin access to assistants in admin UI
+        if (resource === 'assistants') {
+            if (!isAdmin) {
+                throw new Error('Access denied: Admin only');
+            }
+            // Admins can see all assistants
+            return baseDataProvider.getList(resource, params);
+        }
         
         // If admin, skip user filtering - they can see all data
         if (isAdmin) {
@@ -93,6 +118,15 @@ export const dataProvider: DataProvider = {
         const userId = await getCurrentUserId();
         const isAdmin = await isAdminUser();
         
+        // Block non-admin access to assistants in admin UI
+        if (resource === 'assistants') {
+            if (!isAdmin) {
+                throw new Error('Access denied: Admin only');
+            }
+            // Admins can see all assistants
+            return baseDataProvider.getOne(resource, params);
+        }
+        
         // If admin, skip user filtering - they can see all data
         if (isAdmin) {
             return baseDataProvider.getOne(resource, params);
@@ -117,6 +151,15 @@ export const dataProvider: DataProvider = {
     async getMany(resource: string, params: any) {
         const userId = await getCurrentUserId();
         const isAdmin = await isAdminUser();
+        
+        // Block non-admin access to assistants in admin UI
+        if (resource === 'assistants') {
+            if (!isAdmin) {
+                throw new Error('Access denied: Admin only');
+            }
+            // Admins can see all assistants
+            return baseDataProvider.getMany(resource, params);
+        }
         
         // If admin, skip user filtering - they can see all data
         if (isAdmin) {
@@ -150,6 +193,15 @@ export const dataProvider: DataProvider = {
         const userId = await getCurrentUserId();
         const isAdmin = await isAdminUser();
         
+        // Block non-admin access to assistants in admin UI
+        if (resource === 'assistants') {
+            if (!isAdmin) {
+                throw new Error('Access denied: Admin only');
+            }
+            // Admins can update all assistants
+            return baseDataProvider.update(resource, params);
+        }
+        
         // If admin, skip user filtering - they can update all data
         if (isAdmin) {
             return baseDataProvider.update(resource, params);
@@ -171,6 +223,15 @@ export const dataProvider: DataProvider = {
     async updateMany(resource: string, params: any) {
         const userId = await getCurrentUserId();
         const isAdmin = await isAdminUser();
+        
+        // Block non-admin access to assistants in admin UI
+        if (resource === 'assistants') {
+            if (!isAdmin) {
+                throw new Error('Access denied: Admin only');
+            }
+            // Admins can update all assistants
+            return baseDataProvider.updateMany(resource, params);
+        }
         
         // If admin, skip user filtering - they can update all data
         if (isAdmin) {
@@ -206,6 +267,15 @@ export const dataProvider: DataProvider = {
     async delete(resource: string, params: any) {
         const userId = await getCurrentUserId();
         const isAdmin = await isAdminUser();
+        
+        // Block non-admin access to assistants in admin UI
+        if (resource === 'assistants') {
+            if (!isAdmin) {
+                throw new Error('Access denied: Admin only');
+            }
+            // Admins can delete all assistants
+            return baseDataProvider.delete(resource, params);
+        }
         
         // If admin, skip user filtering - they can delete all data
         if (isAdmin) {
@@ -256,6 +326,15 @@ export const dataProvider: DataProvider = {
     async deleteMany(resource: string, params: any) {
         const userId = await getCurrentUserId();
         const isAdmin = await isAdminUser();
+        
+        // Block non-admin access to assistants in admin UI
+        if (resource === 'assistants') {
+            if (!isAdmin) {
+                throw new Error('Access denied: Admin only');
+            }
+            // Admins can delete all assistants
+            return baseDataProvider.deleteMany(resource, params);
+        }
         
         // If admin, skip user filtering - they can delete all data
         if (isAdmin) {

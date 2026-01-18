@@ -500,14 +500,9 @@ function PureModelSelectorCompact({
     { revalidateOnFocus: false }
   );
 
-  // Filter to only show active assistants
-  const activeAssistants = assistants.filter(
-    (assistant: { active?: boolean }) => assistant.active !== false
-  );
-
   // Find the selected assistant from store
   const selectedAssistant = selectedAssistantId
-    ? activeAssistants.find((a: { id: string }) => a.id === selectedAssistantId)
+    ? assistants.find((a: { id: string }) => a.id === selectedAssistantId)
     : null;
 
   // Get display info - show assistant name
@@ -543,9 +538,9 @@ function PureModelSelectorCompact({
             <div className="px-2 py-6 text-center text-sm text-destructive">
               Error loading assistants. Please try again.
             </div>
-          ) : activeAssistants.length > 0 ? (
+          ) : assistants.length > 0 ? (
             <ModelSelectorGroup heading="Assistants">
-              {activeAssistants.map((assistant: { id: string; name: string; provider: string; active?: boolean }) => {
+              {assistants.map((assistant: { id: string; name: string; provider: string; active?: boolean }) => {
                 const logoProvider = assistant.provider;
                 const isSelected = assistant.id === selectedAssistantId;
                 // Access modelName from assistant object (not in type definition)

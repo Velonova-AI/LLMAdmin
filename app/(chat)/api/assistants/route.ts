@@ -1,6 +1,7 @@
 import { auth } from "@/app/(auth)/auth";
 import { ChatSDKError } from "@/lib/errors";
-import { getActiveAssistantsByUserId } from "@/lib/db/queries";
+import { getAllActiveAssistants, getAllAssistants } from "@/lib/db/customqueries";
+import { getProfile } from "@/lib/supabase/profiles";
 
 export async function GET() {
   try {
@@ -10,9 +11,14 @@ export async function GET() {
       return new ChatSDKError("unauthorized:chat").toResponse();
     }
 
-    const assistants = await getActiveAssistantsByUserId({
-      userId: session.user.id,
-    });
+    // Check if user is admin
+    const profile = await getProfile(session.user.id);
+    const isAdmin = profile?.role === 'admin';
+
+    // Return appropriate assistants based on role
+    const assistants = isAdmin 
+      ? await getAllAssistants()  // All assistants (active + inactive)
+      : await getAllActiveAssistants();  // All active assistants
 
     return Response.json(assistants, { status: 200 });
   } catch (error) {

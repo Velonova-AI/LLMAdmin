@@ -37,6 +37,26 @@ const baseAuthProvider = supabaseAuthProvider(supabase, {
   },
 });
 
-// Export auth provider using base Supabase auth provider
-export const authProvider = baseAuthProvider;
+// Export auth provider with canAccess method to restrict assistants to admins
+export const authProvider = {
+  ...baseAuthProvider,
+  canAccess: async ({ resource, action }: { resource: string; action: string }) => {
+    // If accessing assistants resource in admin UI, check if user is admin
+    if (resource === 'assistants') {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      return profile?.role === 'admin';
+    }
+    
+    // Allow access to all other resources
+    return true;
+  },
+};
 

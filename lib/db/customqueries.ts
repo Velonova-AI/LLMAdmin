@@ -1,9 +1,9 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { profiles } from "./schema/schema";
+import { profiles, assistants } from "./schema/schema";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import type { UserType } from "@/app/(auth)/auth";
 
@@ -66,5 +66,38 @@ export async function getMessageLimitByUserId(userId: string): Promise<number> {
     console.error("[getMessageLimitByUserId] Error:", error);
     // Return default on error
     return entitlementsByUserType.regular.maxMessagesPerDay;
+  }
+}
+
+/**
+ * Get all active assistants (not filtered by user)
+ * Used for chat UI where all users can access all active assistants
+ */
+export async function getAllActiveAssistants() {
+  try {
+    return await db
+      .select()
+      .from(assistants)
+      .where(eq(assistants.active, true))
+      .orderBy(desc(assistants.createdAt));
+  } catch (error) {
+    console.error("[getAllActiveAssistants] Error:", error);
+    throw new Error("Failed to get all active assistants");
+  }
+}
+
+/**
+ * Get all assistants including inactive ones
+ * Used for admin users in chat UI
+ */
+export async function getAllAssistants() {
+  try {
+    return await db
+      .select()
+      .from(assistants)
+      .orderBy(desc(assistants.createdAt));
+  } catch (error) {
+    console.error("[getAllAssistants] Error:", error);
+    throw new Error("Failed to get all assistants");
   }
 }

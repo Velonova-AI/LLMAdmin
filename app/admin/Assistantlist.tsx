@@ -3,6 +3,8 @@
 import { DataTable } from "@/components/admin/data-table";
 import { List } from "@/components/admin/list";
 import { useAssistantStore } from "@/lib/stores/assistant-store";
+import { ReferenceField } from "@/components/admin/reference-field";
+import { TextField } from "@/components/admin/text-field";
 
 import { useRecordContext } from "ra-core";
 import { Button } from "@/components/ui/button";
@@ -54,6 +56,11 @@ export const AssistantList = () => {
           source="active" 
           render={(record) => record.active ? "Active" : "Inactive"}
         />
+        <DataTable.Col label="Created By">
+          <ReferenceField source="user_id" reference="profiles" link={false}>
+            <TextField source="email" />
+          </ReferenceField>
+        </DataTable.Col>
         <DataTable.Col source="created_at" />
         <DataTable.Col label="Actions">
           <ChatLinkColumn />
