@@ -1,31 +1,22 @@
 import { createClient } from './client';
 
 export async function uploadProfilePhoto(file: File, userId: string): Promise<string> {
-  const supabase = createClient();
-  
-  // Generate a unique filename
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${userId}/profile-photo.${fileExt}`;
-  
-  // Upload the file
-  const { error } = await supabase.storage
-    .from('Files')
-    .upload(fileName, file, {
-      cacheControl: '3600',
-      upsert: true // Replace existing file
-    });
+  // Use server-side API route to avoid RLS policy issues
+  const formData = new FormData();
+  formData.append("file", file);
 
-  if (error) {
-    console.error('Error uploading profile photo:', error);
-    throw error;
+  const response = await fetch("/api/profile/photo/upload", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: "Upload failed" }));
+    throw new Error(errorData.error || errorData.details || "Failed to upload profile photo");
   }
 
-  // Get the public URL
-  const { data: urlData } = supabase.storage
-    .from('Files')
-    .getPublicUrl(fileName);
-
-  return urlData.publicUrl;
+  const data = await response.json();
+  return data.url;
 }
 
 export async function uploadFile(file: File, userId: string): Promise<string> {
