@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Admin, ListGuesser, ShowGuesser, EditGuesser } from "@/components/admin";
 import { dataProvider } from "./dataProvider";
 import { CustomRoutes, Resource } from "ra-core";
-import { Route, Navigate } from "react-router";
+import { Route } from "react-router";
 
 import { AssistantList } from "./Assistantlist";
 import { AssistantEdit } from "./Assistantedit";
@@ -21,7 +21,7 @@ import { i18nProvider } from "@/lib/i18nProvider";
 import { ChatCreate, ChatList } from "./chat";
 import { authProvider } from "./authProvider";
 import { ChatPage } from "./ChatPage";
-import { Dashboard } from "./Dashboard";
+import { Overview } from "./Overview";
 import { BillingPage } from "@/components/custom/billing-page";
 import { SignupForm } from "@/components/signup-form";
 import { LoginForm } from "@/components/login-form";
@@ -38,13 +38,13 @@ const App = () => {
 
   return (
     <ProfileProvider>
-    <Admin  loginPage={LoginForm} dataProvider={dataProvider} i18nProvider={i18nProvider} authProvider={authProvider} dashboard={Dashboard}>
+    <Admin  loginPage={LoginForm} dataProvider={dataProvider} i18nProvider={i18nProvider} authProvider={authProvider} dashboard={Overview}>
       <Resource name="Chatb" list={ChatList} options={{ label: 'Chat History' }} create={ChatCreate}/>
 
       <Resource name="assistants" list={AssistantList} edit={AssistantEdit} show={AssistantShow} create={AssistantCreate} />
 
       <CustomRoutes>
-        <Route path="/" element={<Navigate to="/assistants" replace />} />
+        {/* Root path "/" is handled by the Admin component's dashboard prop */}
         {/* <Route path="/signup" element={<SignupRedirect />} /> */}
         <Route path="/learn" element={<GettingStartedPage />} />
         <Route path="/learn/introduction" element={<IntroductionPage />} />

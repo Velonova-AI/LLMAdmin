@@ -21,7 +21,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bike, House, List, CreditCard } from "lucide-react";
+import { Bike, House, List } from "lucide-react";
 
 export function AppSidebar() {
   const hasDashboard = useHasDashboard();
@@ -65,7 +65,6 @@ export function AppSidebar() {
                     onClick={handleClick}
                   />
                 ))}
-              <BillingMenuItem onClick={handleClick} />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -77,8 +76,8 @@ export function AppSidebar() {
 
 export const DashboardMenuItem = ({ onClick }: { onClick?: () => void }) => {
   const translate = useTranslate();
-  const label = translate("ra.page.dashboard", {
-    _: "Dashboard",
+  const label = translate("ra.page.overview", {
+    _: "Overview",
   });
   const match = useMatch({ path: "/", end: true });
   return (
@@ -86,24 +85,6 @@ export const DashboardMenuItem = ({ onClick }: { onClick?: () => void }) => {
       <SidebarMenuButton asChild isActive={!!match}>
         <Link to="/" onClick={onClick}>
           <House />
-          {label}
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
-};
-
-export const BillingMenuItem = ({ onClick }: { onClick?: () => void }) => {
-  const translate = useTranslate();
-  const label = translate("ra.page.billing", {
-    _: "Billing",
-  });
-  const match = useMatch({ path: "/billing", end: false });
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={!!match}>
-        <Link to="/billing" onClick={onClick}>
-          <CreditCard />
           {label}
         </Link>
       </SidebarMenuButton>
