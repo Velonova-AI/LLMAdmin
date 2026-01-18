@@ -8,6 +8,7 @@ import {
 } from "@/lib/db/queries";
 import type { Chat } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
+import { getProfile } from "@/lib/supabase/profiles";
 import type { ChatMessage } from "@/lib/types";
 import { getStreamContext } from "../../route";
 
@@ -46,7 +47,11 @@ export async function GET(
     return new ChatSDKError("not_found:chat").toResponse();
   }
 
-  if (chat.visibility === "private" && chat.userId !== session.user.id) {
+  // Check if user is admin - admins can access any chat
+  const profile = await getProfile(session.user.id);
+  const isAdmin = profile?.role === 'admin';
+  
+  if (chat.visibility === "private" && !isAdmin && chat.userId !== session.user.id) {
     return new ChatSDKError("forbidden:chat").toResponse();
   }
 

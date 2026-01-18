@@ -41,6 +41,7 @@ import { getMessageLimitByUserId } from "@/lib/db/customqueries";
 import { profiles } from "@/lib/db/schema/schema";
 import type { DBMessage } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
+import { getProfile } from "@/lib/supabase/profiles";
 import type { ChatMessage } from "@/lib/types";
 import type { MessageUsage } from "@/lib/types/message-usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
@@ -117,8 +118,12 @@ export async function POST(request: Request) {
     let messagesFromDb: DBMessage[] = [];
     let titlePromise: Promise<string> | null = null;
 
+    // Check if user is admin - admins can access any chat
+    const profile = await getProfile(session.user.id);
+    const isAdmin = profile?.role === 'admin';
+
     if (chat) {
-      if (chat.userId !== session.user.id) {
+      if (!isAdmin && chat.userId !== session.user.id) {
         return new ChatSDKError("forbidden:chat").toResponse();
       }
       // Only fetch messages if chat already exists
@@ -156,9 +161,12 @@ export async function POST(request: Request) {
     if (selectedAssistantId) {
       assistant = await getAssistantById({ id: selectedAssistantId });
       if (assistant) {
-        // Verify the assistant belongs to the user
-        if (assistant.userId !== session.user.id) {
-          return new ChatSDKError("forbidden:chat").toResponse();
+        // Admins can use any assistant (active or inactive)
+        // Regular users can use any active assistant (regardless of ownership)
+        if (!isAdmin) {
+          if (!assistant.active) {
+            return new ChatSDKError("forbidden:chat").toResponse();
+          }
         }
         // Use provider from assistant table, construct modelId as provider/modelName
         provider = assistant.provider;
@@ -381,7 +389,15 @@ export async function DELETE(request: Request) {
 
   const chat = await getChatById({ id });
 
-  if (chat?.userId !== session.user.id) {
+  if (!chat) {
+    return new ChatSDKError("not_found:chat").toResponse();
+  }
+
+  // Check if user is admin - admins can delete any chat
+  const profile = await getProfile(session.user.id);
+  const isAdmin = profile?.role === 'admin';
+
+  if (!isAdmin && chat.userId !== session.user.id) {
     return new ChatSDKError("forbidden:chat").toResponse();
   }
 
