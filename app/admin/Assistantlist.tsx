@@ -50,7 +50,10 @@ export const AssistantList = () => {
       >
         <DataTable.Col source="name" />
         <DataTable.Col source="model_name" />
-        <DataTable.Col source="active" />
+        <DataTable.Col 
+          source="active" 
+          render={(record) => record.active ? "Active" : "Inactive"}
+        />
         <DataTable.Col source="created_at" />
         <DataTable.Col label="Actions">
           <ChatLinkColumn />
