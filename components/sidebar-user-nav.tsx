@@ -3,8 +3,10 @@
 import { ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import type { User } from "next-auth";
-import { signOut, useSession } from "next-auth/react";
+import type { Session } from "@/app/(auth)/auth";
+import { signOut } from "@/app/(auth)/auth";
+import Form from "next/form";
+type User = Session["user"];
 import { useTheme } from "next-themes";
 import {
   DropdownMenu,
@@ -24,46 +26,31 @@ import { toast } from "./toast";
 
 export function SidebarUserNav({ user }: { user: User }) {
   const router = useRouter();
-  const { data, status } = useSession();
   const { setTheme, resolvedTheme } = useTheme();
 
-  const isGuest = guestRegex.test(data?.user?.email ?? "");
+  const isGuest = guestRegex.test(user?.email ?? "");
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            {status === "loading" ? (
-              <SidebarMenuButton className="h-10 justify-between bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <div className="flex flex-row gap-2">
-                  <div className="size-6 animate-pulse rounded-full bg-zinc-500/30" />
-                  <span className="animate-pulse rounded-md bg-zinc-500/30 text-transparent">
-                    Loading auth status
-                  </span>
-                </div>
-                <div className="animate-spin text-zinc-500">
-                  <LoaderIcon />
-                </div>
-              </SidebarMenuButton>
-            ) : (
-              <SidebarMenuButton
-                className="h-10 bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                data-testid="user-nav-button"
-              >
-                <Image
-                  alt={user.email ?? "User Avatar"}
-                  className="rounded-full"
-                  height={24}
-                  src={`https://avatar.vercel.sh/${user.email}`}
-                  width={24}
-                />
-                <span className="truncate" data-testid="user-email">
-                  {isGuest ? "Guest" : user?.email}
-                </span>
-                <ChevronUp className="ml-auto" />
-              </SidebarMenuButton>
-            )}
+            <SidebarMenuButton
+              className="h-10 bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              data-testid="user-nav-button"
+            >
+              <Image
+                alt={user?.email ?? "User Avatar"}
+                className="rounded-full"
+                height={24}
+                src={`https://avatar.vercel.sh/${user?.email}`}
+                width={24}
+              />
+              <span className="truncate" data-testid="user-email">
+                {isGuest ? "Guest" : user?.email}
+              </span>
+              <ChevronUp className="ml-auto" />
+            </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-popper-anchor-width)"
@@ -80,33 +67,29 @@ export function SidebarUserNav({ user }: { user: User }) {
               {`Toggle ${resolvedTheme === "light" ? "dark" : "light"} mode`}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild data-testid="user-nav-item-auth">
-              <button
-                className="w-full cursor-pointer"
-                onClick={() => {
-                  if (status === "loading") {
-                    toast({
-                      type: "error",
-                      description:
-                        "Checking authentication status, please try again!",
-                    });
-
-                    return;
-                  }
-
-                  if (isGuest) {
-                    router.push("/login");
-                  } else {
-                    signOut({
-                      callbackUrl: "/",
-                    });
-                  }
-                }}
-                type="button"
+            {isGuest ? (
+              <DropdownMenuItem
+                className="cursor-pointer"
+                data-testid="user-nav-item-auth"
+                onSelect={() => router.push("/login")}
               >
-                {isGuest ? "Login to your account" : "Sign out"}
-              </button>
-            </DropdownMenuItem>
+                Login to your account
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem asChild data-testid="user-nav-item-auth">
+                <Form
+                  action={async () => {
+                    "use server";
+                    await signOut({ redirectTo: "/" });
+                  }}
+                  className="w-full"
+                >
+                  <button className="w-full cursor-pointer text-left" type="submit">
+                    Sign out
+                  </button>
+                </Form>
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

@@ -138,7 +138,7 @@ const SuggestionsInput = (props: InputProps & { className?: string }) => {
           />
           <Button
             type="button"
-            size="icon-sm"
+            size="icon"
             variant="ghost"
             className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
             onClick={handleAddSuggestion}

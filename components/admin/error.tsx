@@ -23,6 +23,19 @@ export const Error = (props: InternalErrorProps & {}) => {
 
   useResetErrorBoundaryOnLocationChange(resetErrorBoundary);
 
+  // Type guard for Error objects
+  const getErrorMessage = (err: unknown): string => {
+    if (err instanceof Error) {
+      return (err as Error).message;
+    }
+    if (typeof err === 'object' && err !== null && 'message' in err) {
+      return String((err as { message: unknown }).message);
+    }
+    return String(err);
+  };
+
+  const errorMessage = getErrorMessage(error);
+
   return (
     <div className="flex flex-col items-center md:p-16 gap-5" {...rest}>
       <h1 className="flex items-center text-3xl mt-5 mb-5 gap-3" role="alert">
@@ -40,7 +53,7 @@ export const Error = (props: InternalErrorProps & {}) => {
           >
             <AccordionItem value="error">
               <AccordionTrigger className="py-2">
-                <Translate i18nKey={error.message}>{error.message}</Translate>
+                <Translate i18nKey={errorMessage}>{errorMessage}</Translate>
               </AccordionTrigger>
               <AccordionContent className="whitespace-pre-wrap pt-1">
                 <pre className="text-xls">{errorInfo?.componentStack}</pre>
