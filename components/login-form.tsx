@@ -77,32 +77,12 @@ export function LoginForm({
     setLoading(true);
 
     try {
-      console.log('Attempting login for:', email);
-      
       // Use react-admin's login function which calls the authProvider
       // This ensures proper integration with the Admin component
       await login(
         { email: email.trim(), password },
         '/' // redirect to home after successful login
       );
-      
-      console.log('Login successful');
-      
-      // Check if session exists and cookies are set
-      const { createClient } = await import('@/lib/supabase/client');
-      const client = createClient();
-      const { data: { session }, error: sessionError } = await client.auth.getSession();
-      
-      if (session) {
-        console.log('✅ Session exists after login:', {
-          userId: session.user?.id,
-          expiresAt: session.expires_at,
-        });
-      } else {
-        console.error('❌ No session after login', sessionError);
-      }
-      
-      console.log('Cookies:', document.cookie);
       // The login function handles the redirect automatically
     } catch (err: any) {
       console.error('Login error - Full details:', {

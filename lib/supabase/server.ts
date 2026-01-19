@@ -33,13 +33,6 @@ export async function createClient() {
               };
               
               cookieStore.set(name, value, cookieOptions);
-              
-              console.log('✅ Bruxelles server cookie set:', {
-                name,
-                domain: cookieOptions.domain || 'localhost',
-                secure: cookieOptions.secure,
-                sameSite: cookieOptions.sameSite,
-              });
             });
           } catch (error) {
             console.error('❌ Bruxelles server cookie set error:', error);

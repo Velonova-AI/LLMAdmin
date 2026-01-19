@@ -6,10 +6,6 @@ import { getProfile, updateProfile } from '@/lib/supabase/profiles';
 // Create browser-based Supabase client
 export const supabase = createClient();
 
-// #region agent log
-if(typeof window!=='undefined'){fetch('http://127.0.0.1:7242/ingest/0250316e-cc04-48a9-9b15-1e69ff1db2a9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'bruxelles/app/admin/dataProvider.ts:6',message:'dataProvider supabase client created',data:{isClient:typeof window!=='undefined',hostname:typeof window!=='undefined'?window.location.hostname:'server'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});}
-// #endregion
-
 // Base data provider
 const baseDataProvider = supabaseDataProvider({
     instanceUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
