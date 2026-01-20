@@ -23,6 +23,7 @@ import { authProvider } from "./authProvider";
 import { ChatPage } from "./ChatPage";
 import { Overview } from "./Overview";
 import { BillingPage } from "@/components/custom/billing-page";
+import PricingPage from "@/components/custom/pricing-page";
 import { SignupForm } from "@/components/signup-form";
 import { LoginForm } from "@/components/login-form";
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
@@ -52,6 +53,7 @@ const App = () => {
         <Route path="/learn/prompt-engineering" element={<PromptEngineeringPage />} />
         <Route path="/learn/vibe-coding" element={<VibeCodingPage />} />
         <Route path="/chat/:id" element={<ChatPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/billing" element={<BillingPage />} />
         <Route path="/my-profile" element={<ProfileEdit />} /> 
       </CustomRoutes>

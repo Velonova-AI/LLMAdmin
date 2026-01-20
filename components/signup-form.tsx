@@ -25,8 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Link, useNavigate } from "react-router"
-import { ExternalLink, Eye, EyeOff, Bike } from "lucide-react"
+import { Link, useNavigate, useSearchParams } from "react-router"
+import { ExternalLink, Eye, EyeOff, Bike, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { createProfile, transformSignupDataToProfile } from "@/lib/supabase/profiles"
 
@@ -70,7 +70,18 @@ export function SignupForm({
   const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [checkingAuth, setCheckingAuth] = React.useState(true);
+  const [selectedPlan, setSelectedPlan] = React.useState<{ planId: string; priceId: string } | null>(null);
   const navigate = useNavigate();
+  const searchParams = useSearchParams();
+
+  // Check for plan selection from URL params (from pricing table or direct link)
+  React.useEffect(() => {
+    const planId = searchParams.get("plan");
+    const priceId = searchParams.get("priceId");
+    if (planId && priceId) {
+      setSelectedPlan({ planId, priceId });
+    }
+  }, [searchParams]);
 
   // Fast auth check using getSession (checks local storage/cookies first)
   React.useEffect(() => {
@@ -295,7 +306,35 @@ export function SignupForm({
         return; // Don't redirect if profile creation fails
       }
       
+      // If plan was selected, redirect to checkout
+      if (selectedPlan && selectedPlan.priceId) {
+        try {
+          const response = await fetch("/api/checkout/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              priceId: selectedPlan.priceId,
+              planId: selectedPlan.planId,
+              email: formData.email,
+              mode: "subscription",
+            }),
+          });
+
+          if (response.ok) {
+            const { url } = await response.json();
+            if (url) {
+              window.location.href = url;
+              return;
+            }
+          }
+        } catch (checkoutError) {
+          console.error("Error creating checkout:", checkoutError);
+          // Continue to home page if checkout fails - user can upgrade later
+        }
+      }
+      
       // Success - redirect to home page (user is logged in)
+      // If no plan selected, user can upgrade later from billing page
       navigate('/');
     } catch (error: any) {
       console.error('Signup error - Full details:', {
@@ -327,11 +366,33 @@ export function SignupForm({
             <CardHeader className="text-center">
               <CardTitle className="text-xl">Sign Up Form</CardTitle>
               <CardDescription>
+                {selectedPlan ? (
+                  <span className="text-primary">Plan selected: {selectedPlan.planId}</span>
+                ) : (
+                  <>
+                    Create your account to get started.{" "}
+                    <Link to="/pricing" className="text-primary hover:underline">
+                      View plans
+                    </Link>
+                  </>
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit}>
                 <FieldGroup>
+                  {selectedPlan && (
+                    <div className="p-3 bg-primary/10 rounded-md text-sm text-center mb-4">
+                      <strong>Selected Plan:</strong> {selectedPlan.planId}
+                      <br />
+                      <Link 
+                        to="/pricing" 
+                        className="text-primary hover:underline text-xs"
+                      >
+                        Change plan
+                      </Link>
+                    </div>
+                  )}
               <Field>
                 <FieldLabel htmlFor="startupName" className="text-center">Startup Name</FieldLabel>
                 <Input 
@@ -493,7 +554,14 @@ export function SignupForm({
               </Field>
               <Field>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Creating account..." : "Create Account"}
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
                 </Button>
                 <FieldDescription className="text-center">
                   Already have an account? <Link to="/login" className="underline underline-offset-4 hover:text-primary">Sign in</Link>
