@@ -99,7 +99,7 @@ export function BillingPage() {
             size="lg"
             className="w-full sm:w-auto"
           >
-            <a href="/pricing">View Plans</a>
+            <a href="#/pricing">View Plans</a>
           </Button>
         </CardFooter>
       </Card>

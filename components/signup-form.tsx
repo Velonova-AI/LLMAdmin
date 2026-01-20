@@ -72,7 +72,7 @@ export function SignupForm({
   const [checkingAuth, setCheckingAuth] = React.useState(true);
   const [selectedPlan, setSelectedPlan] = React.useState<{ planId: string; priceId: string } | null>(null);
   const navigate = useNavigate();
-  const searchParams = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   // Check for plan selection from URL params (from pricing table or direct link)
   React.useEffect(() => {
@@ -371,9 +371,9 @@ export function SignupForm({
                 ) : (
                   <>
                     Create your account to get started.{" "}
-                    <Link to="/pricing" className="text-primary hover:underline">
+                    <a href="#/pricing" className="text-primary hover:underline">
                       View plans
-                    </Link>
+                    </a>
                   </>
                 )}
               </CardDescription>
@@ -385,12 +385,12 @@ export function SignupForm({
                     <div className="p-3 bg-primary/10 rounded-md text-sm text-center mb-4">
                       <strong>Selected Plan:</strong> {selectedPlan.planId}
                       <br />
-                      <Link 
-                        to="/pricing" 
+                      <a 
+                        href="#/pricing" 
                         className="text-primary hover:underline text-xs"
                       >
                         Change plan
-                      </Link>
+                      </a>
                     </div>
                   )}
               <Field>
